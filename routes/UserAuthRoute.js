@@ -3,13 +3,32 @@ const User=require('../models/UserModel');
 const router=express.Router();
 const adminPass='lokesh';
 router.post('/verifyAdmin', (req,res)=>{
+
+
+    const genId=req.body.genId;
     const password=req.body.password;
-    if(password==adminPass)
-    {
-        res.send({"allowed":true});
-    }
-    else
-    res.send({"allowed":false});
+    
+    User.findOne({genId:genId}).then((result)=>{
+        if(result!=null){
+            if(password==result["password"])
+        {
+            if(result["accountType"]=="admin"){
+                res.send({"allowed":true});
+            }
+            else{
+                res.send({"allowed":false});
+            }
+
+        }
+        else{
+            res.status(404).send("Invalid Password");
+        }
+        }
+        else{res.status(404).send("User not Found");}
+    }).catch((err)=>{
+        res.status(404).send("User not Found");
+        console.log(err);});
+    
 
 });
 router.post('/deleteAccount/:userId',async (req,res)=>{

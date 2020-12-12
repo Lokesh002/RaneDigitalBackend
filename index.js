@@ -13,7 +13,7 @@ const PFURoutes=require('./routes/PFURoutes');
 const LineRoutes=require('./routes/LineRoutes');
 const UserAuthRoute=require('./routes/UserAuthRoute');
 const ejs=require('ejs');
-
+const PFU=require('./models/PFUModel');
 const FileDB = require("./models/uploadedFile");
 const FolderDB=require("./models/newFolder");
 const { doesNotMatch } = require("assert");
@@ -35,6 +35,7 @@ app.listen(port,function(){
 
 
 var x='';
+var photoName="";
 //Set Storage Engine
 const storage=multer.diskStorage({
 destination: './public/uploads/',
@@ -44,6 +45,14 @@ filename:async function(req,file,cb){
    
 }
 });
+const picsStorage=multer.diskStorage({
+  destination: './public/PFUpics/',
+  filename:async function(req,file,cb){
+     photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
+     await cb(null,photoName);
+     
+  }
+  });
 
 
 //Init Upload
@@ -55,6 +64,16 @@ const upload=multer({
       fileSize: 500* 1024 * 1024
   }
 }).single('myfile');
+//PFU photo
+const uploadPFUPhoto=multer({
+      
+  storage:picsStorage,
+  
+limits:{
+    fileSize: 10* 1024 * 1024
+}
+}).single('myPhoto');
+
 
 
 // SETUP APP
@@ -89,8 +108,8 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
-    app.get('/ProductionDropDown.json', (req,res)=>{
-      FolderDB.find({department:"Production"}).then((result)=>{console.log(result);
+    app.get('/MFGDropDown.json', (req,res)=>{
+      FolderDB.find({department:"MFG"}).then((result)=>{console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -102,8 +121,8 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
-    app.get('/QualityDropDown.json', (req,res)=>{
-      FolderDB.find({department:"Quality"}).then((result)=>{console.log(result);
+    app.get('/QADDropDown.json', (req,res)=>{
+      FolderDB.find({department:"QAD"}).then((result)=>{console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -165,7 +184,7 @@ var data;
                         const fileDB=new FileDB({
                           name: req.body.name.toString(),
                           originalName:req.file.originalname.toString(),
-                          //CHANGE THIS WHEN DEPLOYING TO PRODUCTION
+                          //CHANGE THIS WHEN DEPLOYING TO MFG
                           url: 'http://192.168.43.18:3000/uploads/'+x,
                           department: req.body.myList,
                           folder: folder._id,
@@ -183,7 +202,7 @@ var data;
                       const fileDB=new FileDB({
                         name: req.body.name.toString(),
                         originalName:req.file.originalname.toString(),
-                        //CHANGE THIS WHEN DEPLOYING TO PRODUCTION
+                        //CHANGE THIS WHEN DEPLOYING TO MFG
                         url: 'http://192.168.43.18:3000/uploads/'+x,
                         department: req.body.myList,
                         folder: mongoose.Types.ObjectId(req.body.folderList),
@@ -237,6 +256,43 @@ var data;
             }
         });
     });
+
+    app.post('/uploadPFUPhoto',(req,res)=>{
+        
+      uploadPFUPhoto(req,res,(err) =>{
+        console.log(req.body.pfuId);
+      
+          if(err){
+              res.send("Error");
+
+          }
+          else{
+            
+              //console.log(req.file);
+              PFU.findByIdAndUpdate(req.body.pfuId,{
+                photoURL:'http://192.168.43.18:3000/PFUpics/'+photoName
+                },{ "new": true, "upsert": true }, function(err,doc){
+                  if(err) 
+                  {
+                    res.status(500).send("Error!");
+                    console.log(err);
+                }
+                  res.send(doc);
+                  
+                });
+                    }
+
+                    
+              });
+             
+              
+   });
+               
+             
+                
+              
+         
+
 //get folders of a department method
 app.get('/:dept',(req,res)=>{
   const dept= req.params.dept;

@@ -41,6 +41,10 @@ actualClosingDate:{
     type:Date,
     
 },
+photoURL:{
+    type:String,
+    
+},
 machine:{type:mongoose.Schema.Types.ObjectId, ref: 'Machines'},
 
 line:{type:mongoose.Schema.Types.ObjectId, ref: 'Lines'},

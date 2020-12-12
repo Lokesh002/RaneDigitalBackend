@@ -17,12 +17,13 @@ router.post('/generate', (req,res)=>{
         machine: req.body.machine,
         line:req.body.line,
         raisingPerson:req.body.raisingPerson,
+        photoURL:""
     });
     pfu.save().then((result)=>{result.populate('machine').populate('raisingPerson',function(err, pfu) {
       if(err) throw err;
 
       
-      console.log(result);
+      
         res.send(pfu);
     });}).catch((err)=>{
       res.status(404).send("Error");
@@ -40,23 +41,20 @@ router.post('/getPFU', (req,res)=>{
     const raisingDepartment=req.body.raisingDepartment;
     const machineId=req.body.machineId;
     const lineId=req.body.lineId;
-
-    
-    
     var query={};
-
+    
     if(fromDate)
-
+    
     {
         query.createdAt={ "$gte": new Date(fromDate), "$lt": new Date(toDate)};
         }
-
-    if(departmentResponsible)
+    
+        if(departmentResponsible)
     {
       if(departmentResponsible!='ALL')
       {
         query.deptResponsible=departmentResponsible;
-    
+
       }
         }
 
@@ -152,7 +150,7 @@ router.post('/reSubmitPFU', (req,res)=>{
     const pfuId=req.body.pfuId;
    
     PFU.findByIdAndUpdate(pfuId,{
-        status:0
+        status:0, action:"",rootCause:"", targetDate:undefined
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
           {
@@ -167,10 +165,11 @@ router.post('/PFUActionDecide', (req,res)=>{
     const pfuId=req.body.pfuId;
    const rootCause=req.body.rootCause;
 const targetDate=req.body.targetDate;
+const action=req.body.action;
 
 
     PFU.findByIdAndUpdate(pfuId,{
-        status:2, rootCause:rootCause, targetDate:new Date(targetDate)
+        status:2, action:action,rootCause:rootCause, targetDate:new Date(targetDate)
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
           {
@@ -213,9 +212,9 @@ router.post('/PFUStandardize', (req,res)=>{
 });
 router.post('/PFUClose', (req,res)=>{
   const pfuId=req.body.pfuId;
- 
+ const actualClosingDate=new Date(req.body.actualClosingDate);
   PFU.findByIdAndUpdate(pfuId,{
-      status:5
+      status:5, actualClosingDate:actualClosingDate
       },{ "new": true, "upsert": true }, function(err,doc){
         if(err) 
         {
