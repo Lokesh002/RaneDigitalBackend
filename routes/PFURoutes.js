@@ -133,7 +133,7 @@ router.get('/makeBackup',(req,res)=>{
    else{
      
         fse.copySync(srcDir,'./Backup',{overwrite:true,recursive:true});
-        res.send("Backup Updated.");
+        res.send({'msg':'Backup Updated.'});
      
    }
 }
