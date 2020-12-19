@@ -100,7 +100,7 @@ if(lineId)
    
 
 PFU.find(query).populate('line').populate('machine').populate('raisingPerson').then((pfu)=>{
-  console.log(query);
+  //console.log(query);
   
   res.send(pfu)}).catch((err)=>{res.status(404).send("  ")});
     
@@ -283,7 +283,7 @@ router.post('/PFUClose', (req,res)=>{
         var docs=doc;
         try{
           var date=new Date();
-          console.log(date);
+          //console.log(date);
           var Path='./public/PFUData/'+date.getFullYear().toString();
         //console.log(path);
          if(!fs.existsSync(Path))  
@@ -349,14 +349,14 @@ router.post('/PFUClose', (req,res)=>{
 
           var workbook =new ExcelJS.Workbook();
         //  workbook.creator ="Lokesh Joshi"; 
-        console.log((date.getMonth()+1).toString());
-        console.log(filePath);
+       // console.log((date.getMonth()+1).toString());
+       // console.log(filePath);
         workbook.xlsx.readFile(filePath)
     .then(function() {
         // use workbook 
         var worksheet;
           worksheet = workbook.getWorksheet('Closed PFU');
-          console.log("hehe");
+          // console.log("hehe");
           var sno=worksheet.getCell('A'+worksheet.actualRowCount.toString());
          var x=sno.value +1;
           worksheet.addRow([x,docs['raisingDate'],docs['line']['name'],docs['machine']['code'],docs['machine']['name'],docs['raisingDept'],

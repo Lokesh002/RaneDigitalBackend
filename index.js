@@ -88,7 +88,7 @@ var data;
     });   
 
     app.get('/MEDDropDown.json', (req,res)=>{
-      FolderDB.find({department:"MED"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"MED"}).then((result)=>{//console.log(result);
         
         data=result;
 
@@ -97,32 +97,32 @@ var data;
         }).catch((err)=>{console.log(err);});
     });
     app.get('/StoreDropDown.json', (req,res)=>{
-      FolderDB.find({department:"Store"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"Store"}).then((result)=>{//console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
     app.get('/PPCDropDown.json', (req,res)=>{
-      FolderDB.find({department:"PPC"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"PPC"}).then((result)=>{//console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
     app.get('/MFGDropDown.json', (req,res)=>{
-      FolderDB.find({department:"MFG"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"MFG"}).then((result)=>{//console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
     app.get('/PLEDropDown.json', (req,res)=>{
-      FolderDB.find({department:"PLE"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"PLE"}).then((result)=>{//console.log(result);
         store=result;
         console.log("hello"+ result);
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
     app.get('/QADDropDown.json', (req,res)=>{
-      FolderDB.find({department:"QAD"}).then((result)=>{console.log(result);
+      FolderDB.find({department:"QAD"}).then((result)=>{//console.log(result);
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -141,29 +141,29 @@ var data;
     app.post('/upload',(req,res)=>{
         
         upload(req,res,(err) =>{
-          console.log(req.body.myList);
-        console.log(req.body.name);
+        //   console.log(req.body.myList);
+        // console.log(req.body.name);
         
             if(err){
                 res.render('index',{msg:err,success:""});
 
             }else{
               
-                console.log(req.file);
+                // console.log(req.file);
                 FileDB.find({
                   department:req.body.myList,
                   originalName:req.file.originalname
                 })
                 .then(async(result)=>{
-                    console.log(result);
+                    // console.log(result);
                     if(result.length==0){
                       
                       if(req.body.folderList=="newFolder"){
                         var foldernm=req.body.folderName;
                         var folder;
                         
-                        console.log("hello "+foldernm);
-                        console.log(req.body.folderList);
+                        // console.log("hello "+foldernm);
+                        // console.log(req.body.folderList);
 
                         //saving folder
                         const folderDB=new FolderDB({
@@ -171,10 +171,10 @@ var data;
                           department: req.body.myList
                           
                         });
-                        console.log("folderDB");
-                        console.log(folderDB);
+                        // console.log("folderDB");
+                        // console.log(folderDB);
                         await folderDB.save().then((result)=>{
-                          console.log(result);
+                          // console.log(result);
                            folder=result;
                         
                         }).catch((err)=>{console.log(err);}); 
@@ -217,9 +217,9 @@ var data;
                 //change the url of existing file in DB and then delete the earlier file.
                 
                 var url=result[0]["url"];
-                console.log(url);
+                // console.log(url);
                 var y="./public"+url.toString().substring(25);
-                console.log(y);
+                // console.log(y);
                 fs.unlink(y, function(err)  {
                   if(err){
                     console.log(err);
@@ -232,8 +232,8 @@ var data;
                     originalName:req.file.originalname}, {url:url.toString().substring(0,33)+"/"+x
                     },{upsert:true}, function(err,doc){
                       if(err) throw err;
-                      console.log("haha");
-                      console.log(doc);
+                      // console.log("haha");
+                      // console.log(doc);
                       
                     });
 
@@ -260,7 +260,7 @@ var data;
     app.post('/uploadPFUPhoto',(req,res)=>{
         
       uploadPFUPhoto(req,res,(err) =>{
-        console.log(req.body.pfuId);
+        // console.log(req.body.pfuId);
       
           if(err){
               res.send("Error");
@@ -296,7 +296,7 @@ var data;
 //get folders of a department method
 app.get('/:dept',(req,res)=>{
   const dept= req.params.dept;
-  console.log(dept);
+  // console.log(dept);
   FolderDB.find({
     department:dept.toString()
   
@@ -313,7 +313,7 @@ app.get('/:dept',(req,res)=>{
 //get files of a folder method
 app.get('/view/:folder',(req,res)=>{
   const folder= req.params.folder;
-  console.log(folder);
+  // console.log(folder);
   FileDB.find({
     
     folder:folder.toString()

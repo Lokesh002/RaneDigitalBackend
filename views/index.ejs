@@ -7,18 +7,18 @@ $(document).ready(function(){
 
   $("#myList").on('change',function() {
   var $dropdown = $(this);
-  console.log("hello2");
+  // console.log("hello2");
   var $jsonFileAddress="http://192.168.43.18:3000/"+$dropdown.val()+'DropDown.json';
-  console.log($jsonFileAddress);
+  // console.log($jsonFileAddress);
   $.getJSON($jsonFileAddress, function(data) {
-    console.log(data);
+    // console.log(data);
   var $secondChoice = $("#folderList");
   $secondChoice.empty();
   $secondChoice.append("<option value=\"\"> Select Folder </option>");
   $.each(data, function(index, value) {
     $secondChoice.append("<option value="+value["_id"]+">" + value["name"]+ "</option>");
-    console.log(value["_id"]);
-    console.log(value["name"]);
+    // console.log(value["_id"]);
+    // console.log(value["name"]);
   });
   $secondChoice.append("<option value = \"newFolder\">New Folder...</option>");
 
