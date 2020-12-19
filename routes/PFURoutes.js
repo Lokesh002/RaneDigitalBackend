@@ -160,6 +160,7 @@ router.post('/rejectPFU', (req,res)=>{
 });
 router.delete('/deletePFU/:pfuId',(req,res)=>{
     const pfuId=req.params.pfuId;
+   var photo;
    
     PFU.findByIdAndDelete(pfuId,(err,result)=>{
         if(err) 
@@ -170,7 +171,13 @@ router.delete('/deletePFU/:pfuId',(req,res)=>{
         
         }
         else{
-           
+          
+              photo=result['photoURL'].toString();
+            
+           if(fs.existsSync('./public/PFUpics/'+photo.substring(34,59)))
+           {
+             fs.unlinkSync('./public/PFUpics/'+photo.substring(34,59));
+           }
             res.status(200).send("Successfully Deleted");
         }
     });
