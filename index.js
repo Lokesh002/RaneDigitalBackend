@@ -12,6 +12,9 @@ const QSSRoutes=require('./routes/QSSRoutes');
 const PFURoutes=require('./routes/PFURoutes');
 const LineRoutes=require('./routes/LineRoutes');
 const UserAuthRoute=require('./routes/UserAuthRoute');
+const FourMRoutes=require('./routes/FourMRoutes');
+const DailyProduction=require('./routes/DailyMFGRoutes');
+const ShiftPlan=require('./routes/ShiftPlanRoutes');
 const ejs=require('ejs');
 const PFU=require('./models/PFUModel');
 const FileDB = require("./models/uploadedFile");
@@ -82,11 +85,13 @@ var data;
   app.use(express.static('./public'));
     app.get('/', (req,res)=>{
      
-               res.render('index',{success:""}); 
+               //res.render('index',{success:""}); 
                                     
         
     });   
-
+    app.get('/webupload', (req,res)=>{
+      res.render('index',{success:""});
+});   
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{//console.log(result);
         
@@ -135,6 +140,9 @@ var data;
     app.use('/PFU', PFURoutes);
     app.use('/Line', LineRoutes);
     app.use('/User', UserAuthRoute);
+    app.use('/4M', FourMRoutes);
+    app.use('/DailyProduction', DailyProduction);
+    app.use('/ShiftPlan', ShiftPlan);
 
 
 //post UPLOAD FILE method
@@ -288,9 +296,29 @@ var data;
               
    });
                
-             
+        //get files of a folder method
+app.get('/apk',(req,res)=>{
+  res.redirect('/app/RaneDigital.apk');
+  }); 
+     
                 
-              
+        //get files of a folder method
+app.get('/view/:folder',(req,res)=>{
+  const folder= req.params.folder;
+  // console.log(folder);
+  FileDB.find({
+    
+    folder:folder.toString()
+  }).then((result)=>{
+      res.send(result);
+     
+  }).catch((err)=>{
+      res.status(404).send("Folder not found");
+      
+  }); 
+    
+  });
+      
          
 
 //get folders of a department method
@@ -310,22 +338,6 @@ app.get('/:dept',(req,res)=>{
   });
 });
 
-//get files of a folder method
-app.get('/view/:folder',(req,res)=>{
-  const folder= req.params.folder;
-  // console.log(folder);
-  FileDB.find({
-    
-    folder:folder.toString()
-  }).then((result)=>{
-      res.send(result);
-     
-  }).catch((err)=>{
-      res.status(404).send("Folder not found");
-      
-  }); 
-    
-  });
 
     
    

@@ -18,7 +18,7 @@ router.post('/generate', (req,res)=>{
         rootCause:"",
         targetDate:undefined,
         action:"",
-        raisingDate:Date.now(),
+        raisingDate:new Date(Date.now()+(5*60*60*1000+30*60*1000)),
         actualClosingDate:undefined,
         machine: req.body.machine,
         line:req.body.line,
@@ -128,11 +128,17 @@ router.get('/makeBackup',(req,res)=>{
     
    if(!fs.existsSync('./Backup'))  
   {
-   fs.mkdirSync('./Backup');
-  }
+   fs.mkdirSync('./Backup')
+    fs.mkdirSync('./Backup/PFU');
+  
+   }
    else{
+     if(!fs.existsSync('./Backup/PFU'))
+     {
+      fs.mkdirSync('./Backup/PFU');
+     }
      
-        fse.copySync(srcDir,'./Backup',{overwrite:true,recursive:true});
+        fse.copySync(srcDir,'./Backup/PFU',{overwrite:true,recursive:true});
         res.send({'msg':'Backup Updated.'});
      
    }
@@ -283,9 +289,8 @@ router.post('/PFUClose', (req,res)=>{
         var docs=doc;
         try{
           var date=new Date();
-          //console.log(date);
           var Path='./public/PFUData/'+date.getFullYear().toString();
-        //console.log(path);
+       
          if(!fs.existsSync(Path))  
         {
          fs.mkdirSync(Path);

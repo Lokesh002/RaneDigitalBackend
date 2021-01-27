@@ -43,7 +43,7 @@ router.post('/addMachine', (req,res)=>{
 router.get('/getAllLines', async(req,res)=>{
     
     Line.find()
-          .populate('machine').exec(function(err,line){
+          .populate('machine').sort({name:1}).exec(function(err,line){
             if (err) return handleError(err);
             res.send(line);
             });
