@@ -85,13 +85,13 @@ var data;
   app.use(express.static('./public'));
     app.get('/', (req,res)=>{
      
-               //res.render('index',{success:""}); 
+              res.render('index',{success:""}); 
                                     
         
     });   
-    app.get('/webupload', (req,res)=>{
-      res.render('index',{success:""});
-});   
+    app.delete('/updateApp',(req,res)=>{
+      res.send('1.0.0');
+    })
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{//console.log(result);
         
@@ -294,7 +294,7 @@ var data;
               });
              
               
-   });
+   }); 
                
         //get files of a folder method
 app.get('/apk',(req,res)=>{
