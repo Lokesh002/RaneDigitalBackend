@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> 
+  <script>
+$(document).ready(function(){
+
+  $("#myList").on('change',function() {
+  var $dropdown = $(this);
+  // console.log("hello2");
+  var $jsonFileAddress="http://192.168.43.18:3000/"+$dropdown.val()+'DropDown.json';
+  // console.log($jsonFileAddress);
+  $.getJSON($jsonFileAddress, function(data) {
+    // console.log(data);
+  var $secondChoice = $("#folderList");
+  $secondChoice.empty();
+  $secondChoice.append("<option value=\"\"> Select Folder </option>");
+  $.each(data, function(index, value) {
+    $secondChoice.append("<option value="+value["_id"]+">" + value["name"]+ "</option>");
+    // console.log(value["_id"]);
+    // console.log(value["name"]);
+  });
+  $secondChoice.append("<option value = \"newFolder\">New Folder...</option>");
+
+});
+}); 
+
+});
+
+ 
+   
+     
+    
+    function onLoadBody() {
+     
+      var e = document.getElementById('folderList');
+          var value = e[e.selectedIndex].value;
+          console.log(value);
+        if(value=="newFolder")
+        {
+          document.getElementById("folderName").removeAttribute("readonly");
+        document.getElementById("folderName").required="required";
+          
+        }
+      else{
+        document.getElementById("folderName").setAttribute("readonly", true);
+          document.getElementById("folderName").value="";
+          document.getElementById("folderName").required="";
+      }
+      
+    } 
+  </script>
+    
+  <title>Express File Upload</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/style.css">
+  
+  
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+  <div class="jumbotron">
+    <div class="container text-center">
+      <h1>Rane NSK Gujarat DMS</h1>
+      <p>Upload a File</p>
+      <% if(success !=''){ %>
+      <div class="alert alert-success">
+        <strong><%= success%></strong>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+
+      </div>
+    </div>
+  </nav>
+
+  <div class="container text-center">
+      <div class="col-sm-12">
+        <div class="form">
+          <h1>Upload a File!</h1>
+          <%= typeof  msg != 'undefined' ? msg:''; %>
+           <!-- IMAGE UPLOAD FORM -->
+          <form name="inputForm" action="/upload" enctype="multipart/form-data" method="POST">
+
+                <div class="section">All type of files are allowed.</div>
+                <br>
+                <div class="inner-wrap">
+                  <label for='myfile'><input type="file" id='myfile' name="myfile" required="true"/></label>
+                  <br>
+                  <label for='name'>File Name
+                  <input type="text" id='name' name="name" required="true"/></label>
+                    <br>
+                    
+                      <fieldset>
+                        <legend>Select Department</legend>
+                        <p>
+                          
+                        
+                           <select id = "myList" name="myList" required="true" >
+                            <option selected value = "">Select Department</option>
+                             <option value = "MED">MED</option>
+                             <option value = "PLE">PLE</option>
+                             <option value = "Store">Store</option>
+                             <option value = "PPC">PPC</option>
+                             <option value = "QAD">QAD</option>
+                             <option value = "MFG">MFG</option>
+                           </select>
+                        </p>
+                     </fieldset>
+                     
+                     <div id='folderSelection'>
+                     <fieldset>
+                     
+                      <legend>Select Folder</legend>
+                      
+                      
+                      
+                      <p>
+                      
+                         <select id = "folderList" name="folderList" required="true" onchange="onLoadBody()" >
+                          
+                           <option value = "">Select Folder</option>
+                           <option value = "newFolder">New Folder...</option>
+                           
+                         </select>
+                      </p>
+                   </fieldset>
+                  </div>
+                   <label for='folderName'>Folder Name
+                    <input type="text" id='folderName' name='folderName' readonly/></label>
+                    
+                  <div class="button-section">
+                    <br>
+                    <input type="submit" name="upload" value="Upload File"/>
+                  </div>
+                </div>
+            
+            </div>
+          </form>
+
+
+        </div>
+      </div>
+  </div>
+       
+
+
+</body>
+</html>
