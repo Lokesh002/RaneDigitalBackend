@@ -7,6 +7,8 @@ const { userInfo } = require('os');
 const fse=require('fs-extra');
 const mongoose = require("mongoose");
 const dateTime=require('date-and-time');
+const { trim, now } = require('jquery');
+const { time } = require('console');
 
 
 
@@ -309,6 +311,243 @@ router.post("/setPlan",((req,res)=>{
 }));
 
 
+
+function daysInMonth ( month, year) {
+   
+    
+    return new Date(year, month+1, 0).getDate();
+}
+
+
+// ***** setting the data entry to excel files *******
+router.post("/dataEntry",((req,res)=>{
+const OKprod=req.body.OKproduction;
+const NGprod=req.body.NGproduction;
+const breakdownTime=req.body.breakdownTime;
+const otherLoss=req.body.otherLoss;
+const retryNo=req.body.retryNo;
+const remarks=req.body.remarks;
+const line=req.body.line;
+var sheetNames=['OK Production','NG Production','Breakdown Time','Other Losses', 'Retry Numbers', 'Remarks'];
+  console.log(sheetNames);
+  var worksheets=new Map();
+  var shiftString;
+shift.findById(1,((err,plan)=>{
+    if(err)
+    {    
+       console.log(err);
+    }
+    else{
+        try{
+            
+            
+            var date=new Date(Date.now()+(5*60*60*1000+30*60*1000));
+            var Path='./public/shiftData/'+date.getFullYear().toString();
+ 
+            if(!fs.existsSync(Path))  
+            {
+                fs.mkdirSync(Path);
+            }
+            var subPath=Path+'/'+(date.getMonth()+1).toString();
+            if(!fs.existsSync(subPath))  
+            {
+                fs.mkdirSync(subPath);
+            }
+            var filePath=subPath+'/'+line+'.xlsx';
+ //  //Workbook code start
+ //  //mandatory
+   
+            if(!fs.existsSync(filePath))
+  {
+    var workbook = new ExcelJS.Workbook();
+  workbook.creator ="Lokesh Joshi"; 
+  sheetNames.forEach(element => {
+      worksheets.set(element,workbook.addWorksheet(element));
+
+      worksheets.get(element).columns=[
+         {header:'Date',key:'date',width:20},
+        {header:'Shift',key:'shift',width:10}, 
+        {header:'00:00 to 01:00',key:'firstHour',width:15}, 
+        {header:'01:00 to 02:00',key:'secondHour',width:15},
+        {header:'02:00 to 03:00',key:'thirdHour',width:15},
+        {header:'03:00 to 04:00',key:'fourthHour',width:15},
+        {header:'04:00 to 05:00',key:'fifthHour',width:15},
+        {header:'05:00 to 06:00',key:'sixthHour',width:15},
+        {header:'06:00 to 07:00',key:'seventhHour',width:15},
+        {header:'07:00 to 08:00',key:'eigthHour',width:15},
+        {header:'08:00 to 09:00',key:'ninthHour',width:15},
+        {header:'09:00 to 10:00',key:'tenthHour',width:15},
+        {header:'10:00 to 11:00',key:'eleventhHour',width:15},
+        {header:'11:00 to 12:00',key:'twelfthHour',width:15},
+        {header:'12:00 to 13:00',key:'thriteenthHour',width:15},
+        {header:'13:00 to 14:00',key:'fourteenthHour',width:15},
+        {header:'14:00 to 15:00',key:'fifteenthHour',width:15},
+        {header:'15:00 to 16:00',key:'sixteenthHour',width:15},
+        {header:'16:00 to 17:00',key:'seventeenthHour',width:15},
+        {header:'17:00 to 18:00',key:'eighteenthHour',width:15},
+        {header:'18:00 to 19:00',key:'nineteenthHour',width:15},
+        {header:'19:00 to 20:00',key:'twentiethHour',width:15},
+        {header:'20:00 to 21:00',key:'twentyfirstHour',width:15},
+        {header:'21:00 to 22:00',key:'twentysecondHour',width:15},
+        {header:'22:00 to 23:00',key:'twentythirdHour',width:15},
+        {header:'23:00 to 00:00',key:'twentyfourthHour',width:15},
+   
+      ];
+      console.log(daysInMonth(date.getMonth(), date.getFullYear()));
+      for(var i=1;i<=daysInMonth(date.getMonth(), date.getFullYear());i++){
+       
+     worksheets.get(element).addRow([new Date(date.getFullYear(), date.getMonth(),i,5,30,0,0),'A']);
+     worksheets.get(element).addRow([new Date(date.getFullYear(), date.getMonth(),i,5,30,0,0),'B']);
+     worksheets.get(element).addRow([new Date(date.getFullYear(), date.getMonth(),i,5,30,0,0),'C']);
+   
+      }
+    
+    });
+    function getCellNumber(element)
+    {
+        console.log(date.getDate()*3);
+        const worksheet=worksheets.get(element);
+        const row = worksheet.getRow((date.getDate()*3)-1);
+        console.log(row.getCell('A').value);
+        console.log(row.getCell('B').value);
+        
+    }
+  
+
+    workbook.xlsx.writeFile(filePath).then((data)=>{}).catch((err)=>{console.log(err);});
+    getCellNumber('OK Production');
+
+
+ 
+    }
+  else{
+
+    console.log(new Date(date.getFullYear(), date.getMonth(),1,5,30,0,0));
+    var workbook =new ExcelJS.Workbook();
+  
+  workbook.xlsx.readFile(filePath).then(function() {
+
+sheetNames.forEach(element => {
+    worksheets.set(element,workbook.getWorksheet(element));
+
+   
+    
+});
+//GET CELL OF REQUIRED TIME
+function getRowNumber(element)
+{
+    console.log(date.getDate()*3);
+    const worksheet=worksheets.get(element);
+   
+    console.log(worksheet.getRow((date.getDate()*3)-1).getCell(2).value);
+    const row = worksheet.getRow((date.getDate()*3)-1);
+    console.log(row.getCell('A').value);
+    //console.log(row.getCell('B').value);
+    //  worksheets.get(element).
+}
+
+// find if current time is in middle of given time interval
+function inMiddleof(a,b,datecheck){
+    console.log(dateTime.subtract(datecheck,a).toMilliseconds());
+if(dateTime.subtract(datecheck,a).toMilliseconds()>0)
+    {
+        if( dateTime.subtract(datecheck,b).toMilliseconds()<0){
+            return true;
+        
+        }
+    }
+   return false;
+}
+function getShift(datecheck){
+    var Afrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['from'].substring(0,2))+5,Number(plan['todayAShift']['from'].substring(3,5))+30,Number(plan['todayAShift']['from'].substring(6,8)),0);
+    var Ato =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['to'].substring(0,2))+5,Number(plan['todayAShift']['to'].substring(3,5))+30,Number(plan['todayAShift']['to'].substring(6,8)));
+    var Bfrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayBShift']['from'].substring(0,2))+5,Number(plan['todayBShift']['from'].substring(3,5))+30,Number(plan['todayBShift']['from'].substring(6,8)));
+    var Bto =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayBShift']['to'].substring(0,2))+5,Number(plan['todayBShift']['to'].substring(3,5))+30,Number(plan['todayBShift']['to'].substring(6,8)));;
+    var Cfrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayCShift']['from'].substring(0,2))+5,Number(plan['todayCShift']['from'].substring(3,5))+30,Number(plan['todayCShift']['from'].substring(6,8)));
+    var Cto =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate()+1, Number(plan['todayCShift']['to'].substring(0,2))+5,Number(plan['todayCShift']['to'].substring(3,5))+30,Number(plan['todayCShift']['to'].substring(6,8)));;
+
+    
+    // console.log(date);
+    // console.log(Afrom);
+    // console.log(Ato);
+    // console.log(Bfrom);
+    // console.log(Bto);
+    // console.log(Cfrom);
+    // console.log(Cto);
+    return inMiddleof(Afrom,Ato,datecheck)?'A':inMiddleof(Bfrom,Bto,datecheck)?'B':'C';
+    
+}
+//     var sno=worksheet.getCell('A'+worksheet.actualRowCount.toString());
+//    var x=sno.value +1;
+//    worksheet.addRow([x,docs['raisingDate'],docs['line']['name'],docs['machine']['code'],docs['machine']['name'],docs['raisingDept'],
+    // docs['raisingPerson']['genId'],docs['raisingPerson']['username'],docs['problem'],docs['description'],docs['photoURL'],docs['deptResponsible'],docs['acceptingPerson'],docs['rootCause'],docs['action'],docs['targetDate'],docs['status'],docs['impactProd'],docs['impactQual'],docs['impactCost'],docs['impactDisp'],docs['impactSafe'],docs['impactMora'],docs['impactEnvi'],docs['actualClosingDate'],docs['closingRemarks']]);
+
+
+// workbook.xlsx.writeFile(filePath).then((data)=>{
+   // getRowNumber('OK Production');
+console.log(getShift(date));
+
+console.log(getShift(new Date(date-(30*60*1000))));
+var nowShift=getShift(date);
+if(nowShift!=getShift(new Date(date-(60*60*1000))))
+{
+    if(nowShift!=getShift(new Date(date-(30*60*1000))))
+    {
+        if(plan['today'+nowShift+'Shift']['from'].substring(3,5)!='00')
+        {
+            console.log('shift11')
+        }
+        else{
+            console.log('shift12')
+        }
+    }
+    else{
+            console.log('shift2');
+    }
+
+}
+else{
+    console.log('same shift same time');
+}
+ }).catch((err)=>{
+  console.log(err);
+ });
+   
+    
+}
+//function for getting row no.
+
+
+
+// function for getting cell
+function getCellInRowByColumnHeader(rowNumber, header) {
+    // let row = this.worksheet.getRow(rowNumber);
+    // let result: Excel.Cell | undefined;
+    // var self = this;
+    // row.eachCell(function (cell: Excel.Cell, colNumber: number) {
+    //     let fetchedHeader: string = self.headers[colNumber - 1];
+    //     if (fetchedHeader.toLowerCase().trim() === header.toLowerCase().trim()) {
+    //         result = cell;
+    //     }
+    // });
+    // return result;
+}
+
+   //worksheets.get()
+  console.log(plan['todayAShift']['from']);
+  
+   // 
+   
+  
+  
+}
+catch(err){
+   console.log(err);
+           }
+        }
+    }));
+    res.send('Hello');
+}));
 
 
 module.exports = router;

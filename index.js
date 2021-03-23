@@ -91,7 +91,10 @@ var data;
     });   
     app.delete('/updateApp',(req,res)=>{
       res.send('1.0.0');
-    })
+    });
+    app.get('/securityForDRS', (req,res)=>{
+      res.send({'allowed':true});
+    });
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{
         
@@ -107,8 +110,8 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
-    app.get('/PPCDropDown.json', (req,res)=>{
-      FolderDB.find({department:"PPC"}).then((result)=>{
+    app.get('/HRDropDown.json', (req,res)=>{
+      FolderDB.find({department:"HR"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -126,13 +129,39 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
+    app.get('/SQADropDown.json', (req,res)=>{
+      FolderDB.find({department:"SQA"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });
     app.get('/QADDropDown.json', (req,res)=>{
       FolderDB.find({department:"QAD"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
+    });app.get('/DispatchDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Dispatch"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
     });
-
+    app.get('/AccountsDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Accounts"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });app.get('/SafetyDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Safety"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });app.get('/ITDropDown.json', (req,res)=>{
+      FolderDB.find({department:"IT"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });
         
 //using routes
     app.use('/CSS',CSSRoutes);
@@ -149,29 +178,23 @@ var data;
     app.post('/upload',(req,res)=>{
         
         upload(req,res,(err) =>{
-        //   console.log(req.body.myList);
-        // console.log(req.body.name);
         
             if(err){
                 res.render('index',{msg:err,success:""});
 
             }else{
               
-                // console.log(req.file);
                 FileDB.find({
                   department:req.body.myList,
                   originalName:req.file.originalname
                 })
                 .then(async(result)=>{
-                    // console.log(result);
                     if(result.length==0){
                       
                       if(req.body.folderList=="newFolder"){
                         var foldernm=req.body.folderName;
                         var folder;
-                        
-                        // console.log("hello "+foldernm);
-                        // console.log(req.body.folderList);
+      
 
                         //saving folder
                         const folderDB=new FolderDB({
@@ -179,8 +202,7 @@ var data;
                           department: req.body.myList
                           
                         });
-                        // console.log("folderDB");
-                        // console.log(folderDB);
+                      
                         await folderDB.save().then((result)=>{
                           // console.log(result);
                            folder=result;
