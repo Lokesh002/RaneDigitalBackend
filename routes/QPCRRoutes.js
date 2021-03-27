@@ -1,5 +1,5 @@
 const express=require('express');
-const PFU=require('../models/PFUModel');
+const QPCR=require('../models/QPCRModel');
 const router=express.Router();
 const fs=require('fs');
 const ExcelJS = require('exceljs');
@@ -7,10 +7,10 @@ const { userInfo } = require('os');
 const fse=require('fs-extra');
 const e = require('express');
 
-//Generate PFU
+//Generate QPCR
 
 router.post('/generate', (req,res)=>{
-  const pfu=new PFU({
+  const qpcr=new QPCR({
         problem: req.body.problem.toString(),
         description:req.body.description.toString(),
         raisingDept: req.body.raisingDepartment.toString(),
@@ -36,21 +36,21 @@ router.post('/generate', (req,res)=>{
         rejectingReason:'',
         closingRemarks: ''
     });
-    pfu.save().then((result)=>{result.populate('machine').populate('raisingPerson',function(err, pfu) {
+    qpcr.save().then((result)=>{result.populate('machine').populate('raisingPerson',function(err, qpcr) {
       if(err) throw err;
 
       
       
-        res.send(pfu);
+        res.send(qpcr);
     });}).catch((err)=>{
       res.status(404).send("Error");
       console.log(err);
     }); 
 });
 
-//Filter PFUs
+//Filter QPCRs
 
-router.post('/getPFU', (req,res)=>{
+router.post('/getQPCR', (req,res)=>{
     const fromDate=req.body.fromDate;
     const toDate=req.body.toDate;
     const status=req.body.status;
@@ -161,15 +161,15 @@ query.impactEnvi=true;
    }
    
 
-PFU.find(query).populate('line').populate('machine').populate('raisingPerson').then((pfu)=>{
+QPCR.find(query).populate('line').populate('machine').populate('raisingPerson').then((qpcr)=>{
 
-  res.send(pfu)}).catch((err)=>{res.status(404).send("  ")});
+  res.send(qpcr)}).catch((err)=>{res.status(404).send("  ")});
     
 });
-router.post('/acceptPFU', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/acceptQPCR', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    const acceptingPerson=req.body.acceptingPerson;
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:1, acceptingPerson:acceptingPerson
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
@@ -182,27 +182,24 @@ router.post('/acceptPFU', (req,res)=>{
         });
    
 });
-
-
-
 router.get('/makeBackup',(req,res)=>{
-  const srcDir = './public/PFUData';
- // const remoDir='./Backup/PFUData';
+  const srcDir = './public/QPCRData';
+ // const remoDir='./Backup/QPCRData';
   try{
     
    if(!fs.existsSync('./Backup'))  
   {
    fs.mkdirSync('./Backup')
-    fs.mkdirSync('./Backup/PFU');
+    fs.mkdirSync('./Backup/QPCR');
   
    }
    else{
-     if(!fs.existsSync('./Backup/PFU'))
+     if(!fs.existsSync('./Backup/QPCR'))
      {
-      fs.mkdirSync('./Backup/PFU');
+      fs.mkdirSync('./Backup/QPCR');
      }
      
-        fse.copySync(srcDir,'./Backup/PFU',{overwrite:true,recursive:true});
+        fse.copySync(srcDir,'./Backup/QPCR',{overwrite:true,recursive:true});
         res.send({'msg':'Backup Updated.'});
      
    }
@@ -213,10 +210,10 @@ catch(err){
 
 });
 
-router.post('/rejectPFU', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/rejectQPCR', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    const rejectingReason=req.body.rejectingReason;
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:6,
         rejectingReason:rejectingReason
         },{ "new": true, "upsert": true }, function(err,doc){
@@ -229,11 +226,11 @@ router.post('/rejectPFU', (req,res)=>{
           
         });
 });
-router.delete('/deletePFU/:pfuId',(req,res)=>{
-    const pfuId=req.params.pfuId;
+router.delete('/deleteQPCR/:qpcrId',(req,res)=>{
+    const qpcrId=req.params.qpcrId;
    var photo;
    
-    PFU.findByIdAndDelete(pfuId,(err,result)=>{
+    QPCR.findByIdAndDelete(qpcrId,(err,result)=>{
         if(err) 
         
         {console.log(err);
@@ -245,19 +242,19 @@ router.delete('/deletePFU/:pfuId',(req,res)=>{
           
               photo=result['photoURL'].toString();
             
-           if(fs.existsSync('./public/PFUpics/'+photo.substring(34,59)))
+           if(fs.existsSync('./public/QPCRpics/'+photo.substring(34,59)))
            {
-             fs.unlinkSync('./public/PFUpics/'+photo.substring(34,59));
+             fs.unlinkSync('./public/QPCRpics/'+photo.substring(34,59));
            }
             res.status(200).send("Successfully Deleted");
         }
     });
 
 });
-router.post('/reSubmitPFU', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/reSubmitQPCR', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:0, action:"",rootCause:"", targetDate:undefined,
         acceptingPerson:'', closingRemarks:'', rejectingReason:''
         },{ "new": true, "upsert": true }, function(err,doc){
@@ -270,14 +267,14 @@ router.post('/reSubmitPFU', (req,res)=>{
           
         });
 });
-router.post('/PFUActionDecide', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/QPCRActionDecide', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    const rootCause=req.body.rootCause;
 const targetDate=req.body.targetDate;
 const action=req.body.action;
 
 
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:2, action:action,rootCause:rootCause, targetDate:new Date(targetDate)
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
@@ -289,10 +286,10 @@ const action=req.body.action;
           
         });
 });
-router.post('/PFUActionDone', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/QPCRActionDone', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:3
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
@@ -304,10 +301,10 @@ router.post('/PFUActionDone', (req,res)=>{
           
         });
 });
-router.post('/PFUStandardize', (req,res)=>{
-    const pfuId=req.body.pfuId;
+router.post('/QPCRStandardize', (req,res)=>{
+    const qpcrId=req.body.qpcrId;
    const remarks=req.body.closingRemarks;
-    PFU.findByIdAndUpdate(pfuId,{
+    QPCR.findByIdAndUpdate(qpcrId,{
         status:4,
         closingRemarks:remarks
         },{ "new": true, "upsert": true }, function(err,doc){
@@ -322,13 +319,13 @@ router.post('/PFUStandardize', (req,res)=>{
 });
 
 
-router.post('/changePFUDetails',(req,res)=>{
-  const pfuId=req.body.pfuId;
+router.post('/changeQPCRDetails',(req,res)=>{
+  const qpcrId=req.body.qpcrId;
   const rootCause=req.body.rootCause;
 const targetDate=req.body.targetDate;
 const action=req.body.action;
 
-   PFU.findByIdAndUpdate(pfuId,{
+   QPCR.findByIdAndUpdate(qpcrId,{
         action:action,rootCause:rootCause, targetDate:new Date(targetDate)
        },{ "new": true, "upsert": true }, function(err,doc){
          if(err) 
@@ -341,10 +338,10 @@ const action=req.body.action;
        });
 })
 
-router.post('/PFUClose', (req,res)=>{
-  const pfuId=req.body.pfuId;
+router.post('/QPCRClose', (req,res)=>{
+  const qpcrId=req.body.qpcrId;
  const actualClosingDate=new Date(req.body.actualClosingDate);
-  PFU.findByIdAndUpdate(pfuId,{
+  QPCR.findByIdAndUpdate(qpcrId,{
       status:5, actualClosingDate:actualClosingDate
       },{ "new": true, "upsert": true }, function(err,doc){
         if(err) 
@@ -355,7 +352,7 @@ router.post('/PFUClose', (req,res)=>{
         var docs=doc;
         try{
           var date=new Date();
-          var Path='./public/PFUData/'+date.getFullYear().toString();
+          var Path='./public/QPCRData/'+date.getFullYear().toString();
        
          if(!fs.existsSync(Path))  
         {
@@ -370,7 +367,7 @@ router.post('/PFUClose', (req,res)=>{
           var workbook = new ExcelJS.Workbook();
         workbook.creator ="Lokesh Joshi"; 
         var worksheet;
-         worksheet = workbook.addWorksheet('Closed PFU');
+         worksheet = workbook.addWorksheet('Closed QPCR');
          worksheet.columns=[
            {header:'S.No.',key:'s_no',width:10},
             {header:'Raising Date',key:'raisingDate',width:20},
@@ -384,7 +381,7 @@ router.post('/PFUClose', (req,res)=>{
            {header:'Problem Description',key:'description',width:40},
            {header:'Photo URL',key:'photoURL',width:40},
            {header:'Responsible Department',key:'deptResponsible',width:10},
-           {header:'PFU Accepted By',key:'acceptingPerson',width:20},
+           {header:'QPCR Accepted By',key:'acceptingPerson',width:20},
            {header:'Root Cause',key:'rootCause',width:30},
            {header:'Action',key:'action',width:30},
            {header:'Target Date',key:'targetDate',width:20},
@@ -418,7 +415,7 @@ router.post('/PFUClose', (req,res)=>{
     .then(function() {
         // use workbook 
         var worksheet;
-          worksheet = workbook.getWorksheet('Closed PFU');
+          worksheet = workbook.getWorksheet('Closed QPCR');
 
           var sno=worksheet.getCell('A'+worksheet.actualRowCount.toString());
          var x=sno.value +1;

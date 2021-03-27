@@ -10,6 +10,7 @@ const path =require('path');
 const CSSRoutes=require('./routes/CSSRoutes');
 const QSSRoutes=require('./routes/QSSRoutes');
 const PFURoutes=require('./routes/PFURoutes');
+const QPCRRoutes=require('./routes/QPCRRoutes');
 const LineRoutes=require('./routes/LineRoutes');
 const UserAuthRoute=require('./routes/UserAuthRoute');
 const FourMRoutes=require('./routes/FourMRoutes');
@@ -17,9 +18,11 @@ const DailyProduction=require('./routes/DailyMFGRoutes');
 const ShiftPlan=require('./routes/ShiftPlanRoutes');
 const ejs=require('ejs');
 const PFU=require('./models/PFUModel');
+const QPCR=require('./models/QPCRModel');
 const FileDB = require("./models/uploadedFile");
 const FolderDB=require("./models/newFolder");
 const { doesNotMatch } = require("assert");
+const cors=require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 app.set('view engine','ejs');
@@ -48,7 +51,7 @@ filename:async function(req,file,cb){
    
 }
 });
-const picsStorage=multer.diskStorage({
+const picsPFUStorage=multer.diskStorage({
   destination: './public/PFUpics/',
   filename:async function(req,file,cb){
      photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
@@ -56,7 +59,14 @@ const picsStorage=multer.diskStorage({
      
   }
   });
-
+  const picsQPCRStorage=multer.diskStorage({
+    destination: './public/QPCRpics/',
+    filename:async function(req,file,cb){
+       photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
+       await cb(null,photoName);
+       
+    }
+    });
 
 //Init Upload
 const upload=multer({
@@ -70,7 +80,16 @@ const upload=multer({
 //PFU photo
 const uploadPFUPhoto=multer({
       
-  storage:picsStorage,
+  storage:picsPFUStorage,
+  
+limits:{
+    fileSize: 10* 1024 * 1024
+}
+}).single('myPhoto');
+
+const uploadQPCRPhoto=multer({
+      
+  storage:picsQPCRStorage,
   
 limits:{
     fileSize: 10* 1024 * 1024
@@ -81,19 +100,20 @@ limits:{
 
 // SETUP APP
 var data;
-
+app.use(cors());
   app.use(express.static('./public'));
     app.get('/', (req,res)=>{
-     
+      
+      
               res.render('index',{success:""}); 
                                     
         
     });   
     app.delete('/updateApp',(req,res)=>{
-      res.send('1.0.0');
+      res.send('1.0.1');
     });
     app.get('/securityForDRS', (req,res)=>{
-      res.send({'allowed':true});
+      res.send({'allowed':false});
     });
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{
@@ -156,17 +176,12 @@ var data;
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
-    });app.get('/ITDropDown.json', (req,res)=>{
-      FolderDB.find({department:"IT"}).then((result)=>{
-        store=result;
-        res.send(JSON.stringify(result));
-        }).catch((err)=>{console.log(err);});
     });
-        
 //using routes
     app.use('/CSS',CSSRoutes);
     app.use('/QSS', QSSRoutes);
     app.use('/PFU', PFURoutes);
+    app.use('/QPCR', QPCRRoutes);
     app.use('/Line', LineRoutes);
     app.use('/User', UserAuthRoute);
     app.use('/4M', FourMRoutes);
@@ -286,7 +301,6 @@ var data;
             }
         });
     });
-
     app.post('/uploadPFUPhoto',(req,res)=>{
         
       uploadPFUPhoto(req,res,(err) =>{
@@ -301,6 +315,36 @@ var data;
               //console.log(req.file);
               PFU.findByIdAndUpdate(req.body.pfuId,{
                 photoURL:'http://192.168.43.18:3000/PFUpics/'+photoName
+                },{ "new": true, "upsert": true }, function(err,doc){
+                  if(err) 
+                  {
+                    res.status(500).send("Error!");
+                    console.log(err);
+                }
+                  res.send(doc);
+                  
+                });
+                    }
+
+                    
+              });
+             
+              
+   });
+    app.post('/uploadQPCRPhoto',(req,res)=>{
+        
+      uploadQPCRPhoto(req,res,(err) =>{
+        // console.log(req.body.pfuId);
+      
+          if(err){
+              res.send("Error");
+
+          }
+          else{
+            
+              //console.log(req.file);
+              QPCR.findByIdAndUpdate(req.body.QPCRId,{
+                photoURL:'http://192.168.43.18:3000/QPCRpics/'+photoName
                 },{ "new": true, "upsert": true }, function(err,doc){
                   if(err) 
                   {
