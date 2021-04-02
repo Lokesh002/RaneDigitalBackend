@@ -285,7 +285,8 @@ router.post("/setPlan",((req,res)=>{
     var tommorrowCShifthours=req.body.tommorrowCShifthours; 
     
 
-    shift.findByIdAndUpdate(1,{$set: {'tommorrowAShift.from': tommorrowAShiftFrom,
+    shift.findByIdAndUpdate(1,{$set: {
+        'tommorrowAShift.from': tommorrowAShiftFrom,
     'tommorrowAShift.to': tommorrowAShiftTo,
     'tommorrowAShift.hours': tommorrowAShifthours,
     'tommorrowBShift.from': tommorrowBShiftFrom,
@@ -312,9 +313,7 @@ router.post("/setPlan",((req,res)=>{
 
 
 
-function daysInMonth ( month, year) {
-   
-    
+function daysInMonth ( month, year) {  
     return new Date(year, month+1, 0).getDate();
 }
 
@@ -328,8 +327,10 @@ const otherLoss=req.body.otherLoss;
 const retryNo=req.body.retryNo;
 const remarks=req.body.remarks;
 const line=req.body.line;
+
+var dataPresent=false;
+
 var sheetNames=['OK Production','NG Production','Breakdown Time','Other Losses', 'Retry Numbers', 'Remarks'];
-  console.log(sheetNames);
   var worksheets=new Map();
   var shiftString;
 shift.findById(1,((err,plan)=>{
@@ -393,7 +394,6 @@ shift.findById(1,((err,plan)=>{
         {header:'23:00 to 00:00',key:'twentyfourthHour',width:15},
    
       ];
-      console.log(daysInMonth(date.getMonth(), date.getFullYear()));
       for(var i=1;i<=daysInMonth(date.getMonth(), date.getFullYear());i++){
        
      worksheets.get(element).addRow([new Date(date.getFullYear(), date.getMonth(),i,5,30,0,0),'A']);
@@ -403,141 +403,352 @@ shift.findById(1,((err,plan)=>{
       }
     
     });
-    function getCellNumber(element)
+
+function getColumnNumber(dateCheck){
+var hour=dateCheck.getUTCHours();
+return hour+3;
+
+}
+
+
+function getRowNumber(nowShift,dateCheck)
+{
+    console.log(dateCheck);
+    console.log(dateCheck.getUTCDate()*3);
+    var rowNumber=(dateCheck.getUTCDate()*3)+1;
+    console.log('earlier row No'+rowNumber.toString());
+    if(nowShift=='A')
     {
-        console.log(date.getDate()*3);
+        rowNumber=rowNumber-2;
+
+    }
+    else if(nowShift=='B')
+    {
+        rowNumber=rowNumber-1;
+    }
+
+    return rowNumber;
+}
+
+
+    function getCellNumber(element,valueToAdd)
+    {
         const worksheet=worksheets.get(element);
-        const row = worksheet.getRow((date.getDate()*3)-1);
-        console.log(row.getCell('A').value);
-        console.log(row.getCell('B').value);
+        var nowShift=getShift(date);
+        var rowNumber=getRowNumber(nowShift, date);
+        
+        
+        
+        console.log('Row Number is'+rowNumber.toString());
+        var row = worksheet.getRow(rowNumber);
+        
+               if(nowShift!=getShift(new Date(date-(60*60*1000))))
+               {
+                   if(nowShift!=getShift(new Date(date-(30*60*1000))))
+                   {
+                       if(plan['today'+nowShift+'Shift']['from'].substring(3,5)!='00')
+                       {
+                           console.log('shift11');
+                           row=worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+                       
+                           if(row.getCell(getColumnNumber(date)).value==null)
+                           {
+                               row.getCell(getColumnNumber(date)).value=valueToAdd;
+                         
+                           }
+                           else{
+                               dataPresent=true;
+                           }
+                          
+                       }
+                       else{
+                           console.log('shift12');
+                          row= worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+                     
+                          if(row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value==null)
+                          {row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value=valueToAdd;}
+                          else{
+                              dataPresent=true;
+                          }
+              
+                       }
+                   }
+                   else{
+                           console.log('shift21');
+                           
+                           
+                           row= worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+                           
+                   
+                           
+                           if(row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value==null)
+                           {
+                               row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value=valueToAdd;
+                           }
+                           else{
+                               dataPresent=true;
+                           }
+                        
+                   }
+               
+               }
+               else{
+                   console.log('shift22');
+                   console.log(new Date(date-(60*60*1000)));
+                  row= worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+                  if(row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value==null)
+                  {row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value=valueToAdd;}
+                  else{
+                      dataPresent=true;
+                  }
+                           
+                         
+                           console.log(valueToAdd);
+               }
+               
+    }
+    function inMiddleof(a,b,datecheck){
+    if(dateTime.subtract(datecheck,a).toMilliseconds()>0)
+        {
+            if( dateTime.subtract(datecheck,b).toMilliseconds()<0){
+                return true;
+            
+            }
+        }
+       return false;
+    }
+    function getShift(datecheck){
+        var Afrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['from'].substring(0,2))+5,Number(plan['todayAShift']['from'].substring(3,5))+30,Number(plan['todayAShift']['from'].substring(6,8)),0);
+       
+       
+       var Ato=dateTime.addHours(Afrom,(plan['todayAShift']['hours'])); 
+       var Bfrom=new Date(Ato.getUTCFullYear(),Ato.getUTCMonth(), Ato.getUTCDate(), Number(plan['todayBShift']['from'].substring(0,2))+5,Number(plan['todayBShift']['from'].substring(3,5))+30,Number(plan['todayBShift']['from'].substring(6,8)));
+       var Bto=dateTime.addHours(Bfrom,(plan['todayBShift']['hours'])); 
+       
+       
+        var Cfrom=new Date(Bto.getUTCFullYear(),Bto.getUTCMonth(), Bto.getUTCDate(), Number(plan['todayCShift']['from'].substring(0,2))+5,Number(plan['todayCShift']['from'].substring(3,5))+30,Number(plan['todayCShift']['from'].substring(6,8)));
+        var Cto=dateTime.addHours(Cfrom,(plan['todayCShift']['hours'])); 
+       
+
+
+        return inMiddleof(Afrom,Ato,datecheck)?'A':inMiddleof(Bfrom,Bto,datecheck)?'B':'C';
         
     }
-  
+    
+    
 
+    
+
+    getCellNumber('OK Production',OKprod);
+
+    getCellNumber('NG Production',NGprod);
+    
+    getCellNumber('Breakdown Time',breakdownTime);
+    getCellNumber('Other Losses',otherLoss);
+    getCellNumber('Retry Numbers',retryNo);
+    getCellNumber('Remarks',remarks);
+    
+    if(dataPresent==false)
+    {
     workbook.xlsx.writeFile(filePath).then((data)=>{}).catch((err)=>{console.log(err);});
-    getCellNumber('OK Production');
-
-
- 
+    }
+    if(dataPresent)
+    {
+        res.send('Data Already Present');
+    }
+    else{
+        res.send('Data Added');
+    }
     }
   else{
-
-    console.log(new Date(date.getFullYear(), date.getMonth(),1,5,30,0,0));
     var workbook =new ExcelJS.Workbook();
   
   workbook.xlsx.readFile(filePath).then(function() {
 
 sheetNames.forEach(element => {
-    worksheets.set(element,workbook.getWorksheet(element));
-
-   
-    
+    worksheets.set(element,workbook.getWorksheet(element)); 
 });
-//GET CELL OF REQUIRED TIME
-function getRowNumber(element)
-{
-    console.log(date.getDate()*3);
-    const worksheet=worksheets.get(element);
-   
-    console.log(worksheet.getRow((date.getDate()*3)-1).getCell(2).value);
-    const row = worksheet.getRow((date.getDate()*3)-1);
-    console.log(row.getCell('A').value);
-    //console.log(row.getCell('B').value);
-    //  worksheets.get(element).
-}
+function getColumnNumber(dateCheck){
+    var hour=dateCheck.getUTCHours();
 
-// find if current time is in middle of given time interval
-function inMiddleof(a,b,datecheck){
-    console.log(dateTime.subtract(datecheck,a).toMilliseconds());
-if(dateTime.subtract(datecheck,a).toMilliseconds()>0)
-    {
-        if( dateTime.subtract(datecheck,b).toMilliseconds()<0){
-            return true;
-        
-        }
+    return hour+3;
+    
     }
-   return false;
-}
-function getShift(datecheck){
-    var Afrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['from'].substring(0,2))+5,Number(plan['todayAShift']['from'].substring(3,5))+30,Number(plan['todayAShift']['from'].substring(6,8)),0);
-    var Ato =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['to'].substring(0,2))+5,Number(plan['todayAShift']['to'].substring(3,5))+30,Number(plan['todayAShift']['to'].substring(6,8)));
-    var Bfrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayBShift']['from'].substring(0,2))+5,Number(plan['todayBShift']['from'].substring(3,5))+30,Number(plan['todayBShift']['from'].substring(6,8)));
-    var Bto =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayBShift']['to'].substring(0,2))+5,Number(plan['todayBShift']['to'].substring(3,5))+30,Number(plan['todayBShift']['to'].substring(6,8)));;
-    var Cfrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayCShift']['from'].substring(0,2))+5,Number(plan['todayCShift']['from'].substring(3,5))+30,Number(plan['todayCShift']['from'].substring(6,8)));
-    var Cto =new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate()+1, Number(plan['todayCShift']['to'].substring(0,2))+5,Number(plan['todayCShift']['to'].substring(3,5))+30,Number(plan['todayCShift']['to'].substring(6,8)));;
-
     
-    // console.log(date);
-    // console.log(Afrom);
-    // console.log(Ato);
-    // console.log(Bfrom);
-    // console.log(Bto);
-    // console.log(Cfrom);
-    // console.log(Cto);
-    return inMiddleof(Afrom,Ato,datecheck)?'A':inMiddleof(Bfrom,Bto,datecheck)?'B':'C';
+    function getRowNumber(nowShift,dateCheck)
+    {var rowNumber=(dateCheck.getUTCDate()*3)+1;
+        if(nowShift=='A')
+        {
+            rowNumber=rowNumber-2;
     
-}
-//     var sno=worksheet.getCell('A'+worksheet.actualRowCount.toString());
-//    var x=sno.value +1;
-//    worksheet.addRow([x,docs['raisingDate'],docs['line']['name'],docs['machine']['code'],docs['machine']['name'],docs['raisingDept'],
-    // docs['raisingPerson']['genId'],docs['raisingPerson']['username'],docs['problem'],docs['description'],docs['photoURL'],docs['deptResponsible'],docs['acceptingPerson'],docs['rootCause'],docs['action'],docs['targetDate'],docs['status'],docs['impactProd'],docs['impactQual'],docs['impactCost'],docs['impactDisp'],docs['impactSafe'],docs['impactMora'],docs['impactEnvi'],docs['actualClosingDate'],docs['closingRemarks']]);
-
-
-// workbook.xlsx.writeFile(filePath).then((data)=>{
-   // getRowNumber('OK Production');
-console.log(getShift(date));
-
-console.log(getShift(new Date(date-(30*60*1000))));
-var nowShift=getShift(date);
+        }
+        else if(nowShift=='B')
+        {
+            rowNumber=rowNumber-1;
+        }
+    
+        return rowNumber;
+    }
+    
+    
+        function getCellNumber(element,valueToAdd)
+        {
+            const worksheet=worksheets.get(element);
+            var nowShift=getShift(date);
+            var rowNumber=getRowNumber(nowShift, date);
+            
+            
+            
+            var row = worksheet.getRow(rowNumber);
+            
 if(nowShift!=getShift(new Date(date-(60*60*1000))))
 {
     if(nowShift!=getShift(new Date(date-(30*60*1000))))
     {
         if(plan['today'+nowShift+'Shift']['from'].substring(3,5)!='00')
         {
-            console.log('shift11')
+            console.log('shift11');
+            row=worksheet.getRow(getRowNumber(getShift(new Date(date-(30*60*1000))),new Date(date-(30*60*1000))));
+             console.log('row '+getRowNumber(getShift(new Date(date-(30*60*1000))),new Date(date-(30*60*1000))).toString());
+             console.log('shift '+getShift(new Date(date-(30*60*1000))).toString());
+             console.log('column '+getColumnNumber(date));
+            if(row.getCell(getColumnNumber(date)).value==null)
+            {
+                row.getCell(getColumnNumber(date)).value=valueToAdd;
+          
+            }
+            else{
+                dataPresent=true;
+            }
+           
         }
         else{
-            console.log('shift12')
+            console.log('shift12');
+           row= worksheet.getRow(getRowNumber(getShift(new Date(date-(30*60*1000))),new Date(date-(30*60*1000))));
+ 
+           if(row.getCell(getColumnNumber(new Date(date-(30*60*1000)))).value==null)
+           {row.getCell(getColumnNumber(new Date(date-(30*60*1000)))).value=valueToAdd;}
+           else{
+               dataPresent=true;
+           }
+           
         }
     }
     else{
-            console.log('shift2');
+
+        if(plan['today'+nowShift+'Shift']['from'].substring(3,5)!='00')
+        {
+            console.log('shift211');
+            
+            row= worksheet.getRow(getRowNumber(getShift(new Date(date-(30*60*1000))),new Date(date-(30*60*1000))));
+            
+             console.log('row '+getRowNumber(getShift(new Date(date-(30*60*1000))),new Date(date-(30*60*1000))).toString());
+        
+            
+            if(row.getCell(getColumnNumber(new Date(date-(30*60*1000)))).value==null)
+            {
+                row.getCell(getColumnNumber(new Date(date-(30*60*1000)))).value=valueToAdd;
+            }
+            else{
+                dataPresent=true;
+            }
+        }
+        else{
+            console.log('shift212');
+            
+            row= worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+            
+             console.log('row '+getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))).toString());
+           
+            
+            if(row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value==null)
+            {
+                row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value=valueToAdd;
+            }
+            else{
+                dataPresent=true;
+            }
+        }
+            
+          
     }
 
 }
 else{
-    console.log('same shift same time');
-}
+    console.log('shift22');
+   console.log('row'+getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))).toString());
+   row= worksheet.getRow(getRowNumber(getShift(new Date(date-(60*60*1000))),new Date(date-(60*60*1000))));
+   if(row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value==null)
+   {row.getCell(getColumnNumber(new Date(date-(60*60*1000)))).value=valueToAdd;}
+   else{
+       dataPresent=true;
+   }
+           
+          
+            console.log(valueToAdd);
+}}
+        function inMiddleof(a,b,datecheck){
+        if(dateTime.subtract(datecheck,a).toMilliseconds()>0)
+            {
+                if( dateTime.subtract(datecheck,b).toMilliseconds()<0){
+                    return true;
+                
+                }
+            }
+           return false;
+        }
+        function getShift(datecheck){
+            var Afrom=new Date(datecheck.getUTCFullYear(),datecheck.getUTCMonth(), datecheck.getUTCDate(), Number(plan['todayAShift']['from'].substring(0,2))+5,Number(plan['todayAShift']['from'].substring(3,5))+30,Number(plan['todayAShift']['from'].substring(6,8)),0);
+           
+           
+           var Ato=dateTime.addHours(Afrom,(plan['todayAShift']['hours'])); 
+           var Bfrom=new Date(Ato.getUTCFullYear(),Ato.getUTCMonth(), Ato.getUTCDate(), Number(plan['todayBShift']['from'].substring(0,2))+5,Number(plan['todayBShift']['from'].substring(3,5))+30,Number(plan['todayBShift']['from'].substring(6,8)));
+           var Bto=dateTime.addHours(Bfrom,(plan['todayBShift']['hours'])); 
+           
+           
+            var Cfrom=new Date(Bto.getUTCFullYear(),Bto.getUTCMonth(), Bto.getUTCDate(), Number(plan['todayCShift']['from'].substring(0,2))+5,Number(plan['todayCShift']['from'].substring(3,5))+30,Number(plan['todayCShift']['from'].substring(6,8)));
+            var Cto=dateTime.addHours(Cfrom,(plan['todayCShift']['hours'])); 
+           
+        
+            return inMiddleof(Afrom,Ato,datecheck)?'A':inMiddleof(Bfrom,Bto,datecheck)?'B':'C';
+            
+        }
+        
+    
+        
+    
+        getCellNumber('OK Production',OKprod);
+    
+        getCellNumber('NG Production',NGprod);
+        
+        getCellNumber('Breakdown Time',breakdownTime);
+        getCellNumber('Other Losses',otherLoss);
+        getCellNumber('Retry Numbers',retryNo);
+        getCellNumber('Remarks',remarks);
+        
+        if(dataPresent==false)
+        {
+        workbook.xlsx.writeFile(filePath).then((data)=>{}).catch((err)=>{console.log(err);});
+        }
+        if(dataPresent)
+        {
+            dataPresent=false;
+            res.send('Data Already Present');
+        }
+        else{
+            dataPresent=false;
+            res.send('Data Added');
+        }
+
+
+
  }).catch((err)=>{
   console.log(err);
  });
    
     
 }
-//function for getting row no.
 
-
-
-// function for getting cell
-function getCellInRowByColumnHeader(rowNumber, header) {
-    // let row = this.worksheet.getRow(rowNumber);
-    // let result: Excel.Cell | undefined;
-    // var self = this;
-    // row.eachCell(function (cell: Excel.Cell, colNumber: number) {
-    //     let fetchedHeader: string = self.headers[colNumber - 1];
-    //     if (fetchedHeader.toLowerCase().trim() === header.toLowerCase().trim()) {
-    //         result = cell;
-    //     }
-    // });
-    // return result;
-}
-
-   //worksheets.get()
-  console.log(plan['todayAShift']['from']);
-  
-   // 
-   
   
   
 }
@@ -546,8 +757,14 @@ catch(err){
            }
         }
     }));
-    res.send('Hello');
+    
+    
+    
 }));
 
 
 module.exports = router;
+
+
+
+
