@@ -21,6 +21,7 @@ const PFU=require('./models/PFUModel');
 const QPCR=require('./models/QPCRModel');
 const FileDB = require("./models/uploadedFile");
 const FolderDB=require("./models/newFolder");
+const FTARoutes=require('./routes/FTARoutes');
 const { doesNotMatch } = require("assert");
 const cors=require('cors');
 const app = express();
@@ -39,9 +40,10 @@ app.listen(port,function(){
 });
 }).catch((err)=>{console.log(err)});
 
-
+var finalURL='http://192.168.43.18:3000/';
 var x='';
 var photoName="";
+
 //Set Storage Engine
 const storage=multer.diskStorage({
 destination: './public/uploads/',
@@ -59,15 +61,7 @@ const picsPFUStorage=multer.diskStorage({
      
   }
   });
-  const picsQPCRStorage=multer.diskStorage({
-    destination: './public/QPCRpics/',
-    filename:async function(req,file,cb){
-       photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
-       await cb(null,photoName);
-       
-    }
-    });
-
+ 
 //Init Upload
 const upload=multer({
       
@@ -87,41 +81,25 @@ limits:{
 }
 }).single('myPhoto');
 
-const uploadQPCRPhoto=multer({
-      
-  storage:picsQPCRStorage,
-  
-limits:{
-    fileSize: 10* 1024 * 1024
-}
-}).single('myPhoto');
-
 
 
 // SETUP APP
 var data;
 app.use(cors());
   app.use(express.static('./public'));
-    app.get('/', (req,res)=>{
-      
-      
-              res.render('index',{success:""}); 
-                                    
-        
+    app.get('/', (req,res)=>{ 
+      res.render('index',{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
-      res.send('1.0.1');
+      res.send('1.0.2');
     });
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
     });
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{
-        
-        data=result;
-
-        res.send(JSON.stringify(data));
-        
+      data=result;
+      res.send(JSON.stringify(data));  
         }).catch((err)=>{console.log(err);});
     });
     app.get('/StoreDropDown.json', (req,res)=>{
@@ -187,7 +165,7 @@ app.use(cors());
     app.use('/4M', FourMRoutes);
     app.use('/DailyProduction', DailyProduction);
     app.use('/ShiftPlan', ShiftPlan);
-
+    app.use('/FTA', FTARoutes);
 
 //post UPLOAD FILE method
     app.post('/upload',(req,res)=>{
@@ -230,7 +208,7 @@ app.use(cors());
                           name: req.body.name.toString(),
                           originalName:req.file.originalname.toString(),
                           //CHANGE THIS WHEN DEPLOYING TO MFG
-                          url: 'http://192.168.43.18:3000/uploads/'+x,
+                          url: finalURL+'uploads/'+x,
                           department: req.body.myList,
                           folder: folder._id,
                           size: req.file.size
@@ -248,7 +226,7 @@ app.use(cors());
                         name: req.body.name.toString(),
                         originalName:req.file.originalname.toString(),
                         //CHANGE THIS WHEN DEPLOYING TO MFG
-                        url: 'http://192.168.43.18:3000/uploads/'+x,
+                        url: finalURL+'uploads/'+x,
                         department: req.body.myList,
                         folder: mongoose.Types.ObjectId(req.body.folderList),
                         size: req.file.size
@@ -301,67 +279,26 @@ app.use(cors());
             }
         });
     });
-    app.post('/uploadPFUPhoto',(req,res)=>{
-        
+    app.post('/uploadPFUPhoto',(req,res)=>{  
       uploadPFUPhoto(req,res,(err) =>{
-        // console.log(req.body.pfuId);
-      
           if(err){
               res.send("Error");
-
           }
           else{
-            
-              //console.log(req.file);
               PFU.findByIdAndUpdate(req.body.pfuId,{
-                photoURL:'http://192.168.43.18:3000/PFUpics/'+photoName
+                photoURL:finalURL+'PFUpics/'+photoName
                 },{ "new": true, "upsert": true }, function(err,doc){
                   if(err) 
                   {
                     res.status(500).send("Error!");
                     console.log(err);
                 }
-                  res.send(doc);
-                  
+                  res.send(doc);   
                 });
                     }
-
-                    
-              });
-             
-              
+              });        
    });
-    app.post('/uploadQPCRPhoto',(req,res)=>{
-        
-      uploadQPCRPhoto(req,res,(err) =>{
-        // console.log(req.body.pfuId);
-      
-          if(err){
-              res.send("Error");
-
-          }
-          else{
-            
-              //console.log(req.file);
-              QPCR.findByIdAndUpdate(req.body.QPCRId,{
-                photoURL:'http://192.168.43.18:3000/QPCRpics/'+photoName
-                },{ "new": true, "upsert": true }, function(err,doc){
-                  if(err) 
-                  {
-                    res.status(500).send("Error!");
-                    console.log(err);
-                }
-                  res.send(doc);
-                  
-                });
-                    }
-
-                    
-              });
-             
-              
-   }); 
-               
+    
         //get files of a folder method
 app.get('/apk',(req,res)=>{
   res.redirect('/app/RaneDigital.apk');

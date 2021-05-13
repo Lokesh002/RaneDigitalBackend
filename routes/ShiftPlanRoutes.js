@@ -10,6 +10,7 @@ const dateTime=require('date-and-time');
 const { trim, now } = require('jquery');
 const { time } = require('console');
 
+const path =require('path');
 
 
 
@@ -762,6 +763,88 @@ catch(err){
     
 }));
 
+router.get('/getEntryTime',(req,res)=>{
+    const srcDir = './public/shiftData';
+    var years=[];
+
+    
+function getDirectories(srcpath) {
+    return fs.readdirSync(srcpath)
+    //    .map(file => path.join(srcpath,file))
+    //    .filter(path => fs.statSync(path).isDirectory());
+  }
+  function getFiles(srcpath) {
+    return fs.readdirSync(srcpath);
+    //  .map(file => file)
+      //.filter(path => fs.statSync(path));
+  }
+try{
+     if(fs.existsSync('./Backup/ProdEntrySystem/shiftData'))  
+    {
+        var yearList=getDirectories('./Backup/ProdEntrySystem/shiftData/');
+        
+        for(var i=0;i<yearList.length;i++)
+            {
+                var months=getDirectories('./Backup/ProdEntrySystem/shiftData/'+yearList[i]);
+                var monthArray=[];
+                for(var j=0;j<months.length;j++)
+                {
+                    var files=getFiles('./Backup/ProdEntrySystem/shiftData/'+yearList[i]+'/'+months[j]);
+                    var month={'month':months[j],'files':files};
+                    monthArray.push(month);
+                }
+                var year={'year':yearList[i], 'months':monthArray};
+                years.push(year);
+            }
+            res.send({'years':years});
+    }
+     else{
+       res.send({'years':[]});
+     }
+  }
+  catch(err){
+     console.log(err);
+             }
+  
+  });
+
+  router.post('/getFile',(req,res)=>{
+    const year=req.body.year;
+    const month=req.body.month;
+    const file=req.body.file;
+
+    res.download('./Backup/ProdEntrySystem/shiftData/'+year+'/'+month+'/'+file);
+
+  });
+  
+
+router.get('/makeBackup',(req,res)=>{
+    const srcDir = './public/shiftData';
+    try{
+      
+     if(!fs.existsSync('./Backup'))  
+    {
+     fs.mkdirSync('./Backup')
+      fs.mkdirSync('./Backup/ProdEntrySystem');
+    
+     }
+     else{
+       if(!fs.existsSync('./Backup/ProdEntrySystem'))
+       {
+        fs.mkdirSync('./Backup/ProdEntrySystem');
+       }
+       
+          fse.copySync(srcDir,'./Backup/ProdEntrySystem/shiftData',{overwrite:true,recursive:true});
+          res.send({'msg':'Backup Updated.'});
+       
+     }
+  }
+  catch(err){
+     console.log(err);
+             }
+  
+  });
+  
 
 module.exports = router;
 

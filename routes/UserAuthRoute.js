@@ -208,5 +208,19 @@ router.post('/changePassword', (req,res)=>{
 
 });
 
+
+router.get('/getAllUsers',(req,res)=>{
+    User.find().select('genId username department accountType').then((result)=>{
+        if(result==null){
+        res.status(404).send("Error");
+        }
+        else{
+           res.send(result);
+        }
+        
+    }).catch((err)=>{
+        res.status(404).send("Users not Present");
+        console.log(err);});
+})
 module.exports = router;
 

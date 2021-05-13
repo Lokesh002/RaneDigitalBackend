@@ -7,69 +7,292 @@ const { userInfo } = require('os');
 const fse=require('fs-extra');
 const e = require('express');
 
+const multer = require('multer');
+  const bodyParser = require('body-parser');
+
+const path =require('path');
+var finalURL='http://192.168.43.18:3000/';
 //Generate QPCR
+var qpcrOKPhoto="";
+var qpcrNGPhoto="";
+var qpcrEvidencePhoto="";
 
-router.post('/generate', (req,res)=>{
-  const qpcr=new QPCR({
-        problem: req.body.problem.toString(),
-        description:req.body.description.toString(),
-        raisingDept: req.body.raisingDepartment.toString(),
-        deptResponsible: req.body.departmentResponsible.toString(),
-        status:0,
-        rootCause:"",
-        targetDate:undefined,
-        action:"",
-        raisingDate:new Date(Date.now()+(5*60*60*1000+30*60*1000)),
-        actualClosingDate:undefined,
-        machine: req.body.machine,
-        line:req.body.line,
-        raisingPerson:req.body.raisingPerson,
-        photoURL:"",
-        impactProd: req.body.impactProd,
-        impactQual: req.body.impactQual,
-        impactCost: req.body.impactCost,
-        impactDisp: req.body.impactDisp,
-        impactSafe: req.body.impactSafe,
-        impactMora: req.body.impactMora,
-        impactEnvi: req.body.impactEnvi,
-        acceptingPerson:'',
-        rejectingReason:'',
-        closingRemarks: ''
+const picsQPCROKStorage=multer.diskStorage({
+  destination: './public/QPCRpics/QpcrOKPics/',
+  filename:async function(req,file,cb){
+     qpcrOKPhoto=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
+     await cb(null,qpcrOKPhoto);
+     
+  }
+  });
+  const picsQPCRNGStorage=multer.diskStorage({
+    destination: './public/QPCRpics/QpcrNGPics/',
+    filename:async function(req,file,cb){
+       qpcrNGPhoto=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
+       await cb(null,qpcrNGPhoto);
+       
+    }
     });
-    qpcr.save().then((result)=>{result.populate('machine').populate('raisingPerson',function(err, qpcr) {
-      if(err) throw err;
+    const picsQPCREvidenceStorage=multer.diskStorage({
+      destination: './public/QPCRpics/QpcrEvidencePics/',
+      filename:async function(req,file,cb){
+         qpcrEvidencePhoto=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
+         await cb(null,qpcrEvidencePhoto);
+         
+      }
+      });
 
+      const uploadQpcrOKPhoto=multer({
+      
+        storage:picsQPCROKStorage,
+        
+      limits:{
+          fileSize: 10* 1024 * 1024
+      }
+      }).single('myQPCROKPhoto');
+      const uploadQpcrNGPhoto=multer({
+            
+        storage:picsQPCRNGStorage,
+        
+      limits:{
+          fileSize: 10* 1024 * 1024
+      }
+      }).single('myQPCRNGPhoto');
+      
+      const uploadQpcrEvidencePhoto=multer({
+            
+        storage:picsQPCREvidenceStorage,
+        
+      limits:{
+          fileSize: 10* 1024 * 1024
+      }
+      }).single('myQPCREvidencePhoto');
+ 
+      
+      router.post('/uploadQpcrOKPhoto',(req,res)=>{
+        
+        uploadQpcrOKPhoto(req,res,(err) =>{
+          // console.log(req.body.pfuId);
+        
+            if(err){
+                res.send(err);
+  
+            }
+            else{
+              
+                //console.log(req.file);
+                QPCR.findByIdAndUpdate(req.body.QPCRId,{
+                  OKPhotoURL:finalURL+'QPCRpics/QpcrOKPics/'+qpcrOKPhoto
+                  },{ "new": true, "upsert": true }, function(err,doc){
+                    if(err) 
+                    {
+                      res.status(500).send("Error!");
+                      console.log(err);
+                  }
+                    res.send(doc);
+                    
+                  });
+                      } 
+                });
+               
+                
+     }); 
+         
+      router.post('/uploadQpcrNGPhoto',(req,res)=>{
+          
+        uploadQpcrNGPhoto(req,res,(err) =>{
+          // console.log(req.body.pfuId);
+        
+            if(err){
+                res.send("Error");
+            }
+            else{
+              
+                //console.log(req.file);
+                QPCR.findByIdAndUpdate(req.body.QPCRId,{
+                NGPhotoURL:finalURL+'QPCRpics/QpcrNGPics/'+qpcrNGPhoto
+                  },{ "new": true, "upsert": true }, function(err,doc){
+                    if(err) 
+                    {
+                      res.status(500).send("Error!");
+                      console.log(err);
+                  }
+                    res.send(doc);
+                  });
+                      }   
+                });
+     });       
+  
+     router.post('/uploadQpcrEvidencePhoto',(req,res)=>{
+       const newQPCR=req.body.newQPCR;
+      uploadQpcrEvidencePhoto(req,res,(err) =>{
+        // console.log(req.body.pfuId);
+          if(err){
+              res.send("Error");
+          }
+          else{
+              //console.log(req.file);
+              QPCR.findByIdAndUpdate(req.body.QPCRId,
+                newQPCR,
+  
+                // {
+                // photoURL:finalURL+'QPCRpics/QpcrEvidencePics/'+qpcrEvidencePhoto
+                // }
+                { "new": true, "upsert": true }, function(err,doc){
+                  if(err) 
+                  {
+                    res.status(500).send("Error!");
+                    console.log(err);
+                }
+                  res.send(doc); 
+                });
+                }
+              });      
+            });
       
       
-        res.send(qpcr);
-    });}).catch((err)=>{
-      res.status(404).send("Error");
-      console.log(err);
-    }); 
+router.post('/generate', (req,res)=>{
+  
+  
+  function getQPCRNo(raisingDepartment) {
+  var query={};
+  
+      query.createdAt={ "$gte": new Date(new Date(Date.now()).getFullYear(),new Date(Date.now()).getMonth(),1,0,0,0), "$lt": new Date(Date.now())};
+       query.raisingDept=raisingDepartment;
+  
+
+       var x;
+  
+   QPCR.find(query).lean().select('_id').then((nqpcr)=>{
+    //console.log(nqpcr);
+
+    var Number=(nqpcr.length+1).toString().length>1?(nqpcr.length+1).toString():'0'+(nqpcr.length+1).toString();
+   
+    var month=(new Date(Date.now()+(5*60*60*1000+30*60*1000)).getMonth()+1).toString().length>1?(new Date(Date.now()+(5*60*60*1000+30*60*1000)).getMonth()+1).toString():'0'+(new Date(Date.now()+(5*60*60*1000+30*60*1000)).getMonth()+1).toString();
+    var year=new Date(Date.now()+(5*60*60*1000+30*60*1000)).getFullYear().toString().substring(2,4);
+    x=raisingDepartment+'/'+month+'/'+year+'0'+Number;
+    console.log('QPCR '+x+' is raised.');
+    const qpcr=new QPCR({
+      QPCRNo: x,
+      partName:req.body.partName,
+      partNumber:req.body.partNumber,
+      lotCode:req.body.lotCode,
+      totalLotQty:req.body.totalLotQty,
+      problem:req.body.problem,
+      productionOrderNumber:req.body.productionOrderNumber,
+      productionOrderQty:req.body.productionOrderQty,
+     manufacturingDate:new Date(req.body.manufacturingDate),
+      supplierInvoiceNumber:req.body.supplierInvoiceNumber,
+      model:req.body.model,
+      concernType:req.body.concernType,
+      detectionStage:{
+        recieptStage:req.body.recieptStage,
+        customerEnd:req.body.customerEnd,
+        other:req.body.otherDet,
+        PDI:req.body.PDI,
+        detectionMachine:req.body.detectionMachine,
+        detectionLine:req.body.detectionLine,
+      },
+      complaintImpactAreas:req.body.complaintImpactAreas,
+      problemDescription:req.body.problemDescription,
+      defectRank:req.body.defectRank,
+      defectiveQuantity:req.body.defectiveQuantity,
+      raisingDept:req.body.raisingDepartment,
+      raisingPerson: req.body.raisingPerson,
+      raisingDate:req.body.raisingDate,
+      OKPhotoURL:req.body.OKPhotoURL,
+      NGPhotoURL:req.body.NGPhotoURL,
+      deptResponsible:req.body.departmentResponsible,
+      status:0
+      });
+      qpcr.save().then((result)=>{result.populate('raisingPerson',function(err, qpcr) {
+        if(err) throw err;
+          res.send(qpcr);
+      });}).catch((err)=>{
+        res.status(404).send("Error");
+        console.log(err);
+      }); 
+    
+    }).catch((err)=>{res.status(404).send("Nothing Found")});
+    
+}
+getQPCRNo(req.body.raisingDepartment);
+  
 });
 
-//Filter QPCRs
-
+//get A QPCR
 router.post('/getQPCR', (req,res)=>{
+  const qpcrId=req.body.qpcrId;
+QPCR.findById(qpcrId).lean().populate('raisingPerson','username genId department').populate('detectionStage.detectionMachine','name code').populate('detectionStage.detectionLine','name').then((qpcr)=>{
+
+res.send(qpcr);
+
+}).catch((err)=>{res.status(404).send("Nothing Found")});
+});
+// FILTER LIST OF QPCR SHORT
+router.post('/getQPCRListShort', (req,res)=>{
+  const fromDate=req.body.fromDate;
+  const toDate=req.body.toDate;
+  const status=req.body.status;
+  const departmentResponsible=req.body.departmentResponsible;
+  const raisingDepartment=req.body.raisingDepartment;
+ 
+  var query={};
+  if(fromDate)
+  {
+      query.createdAt={ "$gte": new Date(fromDate), "$lt": new Date(toDate)};
+      }
+  
+      if(departmentResponsible)
+  {
+    if(departmentResponsible!='ALL')
+    {
+      query.deptResponsible=departmentResponsible;
+   }
+      }
+
+  if(raisingDepartment)
+  {
+    if(raisingDepartment!='ALL')
+  {    query.raisingDept=raisingDepartment;
+  }}
+
+  if(status=='open')
+  {
+      query.status={$lt:3};
+  }
+ else
+ {
+  if(status=='closed')
+  { 
+   query.status=3; 
+    
+  }else
+  {
+    if(status=='mineOpen')
+  { 
+   query.status={ $in: [0,1,2,3,4,6] }; 
+  }
+  }
+ }
+// QPCR.find(query).lean().select('QPCRNo problem defectRank raisingDate raisingPerson status deptResponsible raisingDept partName concernType').populate('raisingPerson','username genId department').populate('detectionStage.detectionMachine','name code').populate('detectionStage.detectionLine','name').then((qpcr)=>{
+  QPCR.find(query).lean().select('QPCRNo problem defectRank raisingDate raisingPerson status deptResponsible raisingDept partName concernType').populate('raisingPerson','username genId department').then((qpcr)=>{
+
+res.send(qpcr);
+
+}).catch((err)=>{res.status(404).send("Nothing Found")});
+});
+
+//Filter QPCRs Long
+router.post('/getQPCRListLong', (req,res)=>{
     const fromDate=req.body.fromDate;
     const toDate=req.body.toDate;
     const status=req.body.status;
     const departmentResponsible=req.body.departmentResponsible;
     const raisingDepartment=req.body.raisingDepartment;
-    const machineId=req.body.machineId;
-    const lineId=req.body.lineId;
-    const impactProd=req.body.impactProd;
-    const impactQual=req.body.impactQual;
-    const impactCost= req.body.impactCost;
-    const impactDisp=req.body.impactDisp;
-    const impactSafe= req.body.impactSafe;
-    const impactMora= req.body.impactMora;
-    const impactEnvi= req.body.impactEnvi;
+   // const detectionStage=req.body
     var query={};
-    
-    
     if(fromDate)
-    
     {
         query.createdAt={ "$gte": new Date(fromDate), "$lt": new Date(toDate)};
         }
@@ -79,8 +302,7 @@ router.post('/getQPCR', (req,res)=>{
       if(departmentResponsible!='ALL')
       {
         query.deptResponsible=departmentResponsible;
-
-      }
+     }
         }
 
     if(raisingDepartment)
@@ -88,23 +310,16 @@ router.post('/getQPCR', (req,res)=>{
       if(raisingDepartment!='ALL')
     {    query.raisingDept=raisingDepartment;
     }}
-if(machineId)
-{
-    query.machine=machineId;
-}
-if(lineId)
-{
-    query.line=lineId;
-}
+
     if(status=='open')
     {
-        query.status={$lt:4};
+        query.status={$lt:3};
     }
    else
    {
     if(status=='closed')
     { 
-     query.status=5; 
+     query.status=3; 
       
     }else
     {
@@ -113,64 +328,23 @@ if(lineId)
      query.status={ $in: [0,1,2,3,4,6] }; 
     }
     }
-    
    }
-   if(impactProd)
-   {
-query.impactProd=true;
-   }
-   else{
-   }
+QPCR.find(query).lean().populate('raisingPerson','username genId department').populate('detectionStage.detectionMachine','name code').populate('detectionStage.detectionLine','name').then((qpcr)=>{
 
-   if(impactQual)
-   {
-query.impactQual=true;
-   }
-   else{
-   }
-   if(impactCost)
-   {
-query.impactCost=true;
-   }
-   else{
-   }
-   if(impactDisp)
-   {
-query.impactDisp=true;
-   }
-   else{
-   }
-   if(impactSafe)
-   {
-query.impactSafe=true;
-   }
-   else{
-   }
-   if(impactMora)
-   {
-query.impactMora=true;
-   }
-   else{
-   }
-   if(impactEnvi)
-   {
-query.impactEnvi=true;
-   }
-   else{
+  res.send(qpcr);
 
-   }
-   
-
-QPCR.find(query).populate('line').populate('machine').populate('raisingPerson').then((qpcr)=>{
-
-  res.send(qpcr)}).catch((err)=>{res.status(404).send("  ")});
-    
+}).catch((err)=>{res.status(404).send("Nothing Found")});
 });
+
+
+
+
 router.post('/acceptQPCR', (req,res)=>{
     const qpcrId=req.body.qpcrId;
+    const targetDate=req.body.targetDate;
    const acceptingPerson=req.body.acceptingPerson;
     QPCR.findByIdAndUpdate(qpcrId,{
-        status:1, acceptingPerson:acceptingPerson
+        status:1, acceptingPerson:acceptingPerson, targetSubmittingDate:targetDate
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
           {
@@ -178,13 +352,14 @@ router.post('/acceptQPCR', (req,res)=>{
             console.log(err);
         }
           res.send(doc);
-          
         });
-   
 });
+
+
+
 router.get('/makeBackup',(req,res)=>{
   const srcDir = './public/QPCRData';
- // const remoDir='./Backup/QPCRData';
+
   try{
     
    if(!fs.existsSync('./Backup'))  
@@ -210,11 +385,13 @@ catch(err){
 
 });
 
+
+
 router.post('/rejectQPCR', (req,res)=>{
     const qpcrId=req.body.qpcrId;
    const rejectingReason=req.body.rejectingReason;
     QPCR.findByIdAndUpdate(qpcrId,{
-        status:6,
+        status:4,
         rejectingReason:rejectingReason
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
@@ -223,40 +400,44 @@ router.post('/rejectQPCR', (req,res)=>{
             console.log(err);
         }
           res.send(doc);
-          
         });
 });
+
 router.delete('/deleteQPCR/:qpcrId',(req,res)=>{
     const qpcrId=req.params.qpcrId;
-   var photo;
-   
+   var OKphoto;
+   var NGphoto;
     QPCR.findByIdAndDelete(qpcrId,(err,result)=>{
         if(err) 
-        
         {console.log(err);
         res.status(404).send("Error Occured");
             return;
-        
         }
         else{
-          
-              photo=result['photoURL'].toString();
-            
-           if(fs.existsSync('./public/QPCRpics/'+photo.substring(34,59)))
+              OKphoto=result['OKphotoURL'].toString();
+              NGphoto=result['NGphotoURL'].toString();
+              
+           if(fs.existsSync('./public/QPCRpics/QpcrOKPics/'+OKphoto.substring(46,65)))
            {
-             fs.unlinkSync('./public/QPCRpics/'+photo.substring(34,59));
+             fs.unlinkSync('./public/QPCRpics/QpcrOKPics/'+OKphoto.substring(46,65));
+           }
+           if(fs.existsSync('./public/QPCRpics/QpcrNGPics/'+NGphoto.substring(46,65)))
+           {
+             fs.unlinkSync('./public/QPCRpics/QpcrNGPics/'+NGphoto.substring(46,65));
            }
             res.status(200).send("Successfully Deleted");
         }
     });
-
 });
+
 router.post('/reSubmitQPCR', (req,res)=>{
     const qpcrId=req.body.qpcrId;
-   
     QPCR.findByIdAndUpdate(qpcrId,{
-        status:0, action:"",rootCause:"", targetDate:undefined,
-        acceptingPerson:'', closingRemarks:'', rejectingReason:''
+        status:0,
+        targetDate:undefined,
+        acceptingPerson:'', 
+        closingRemarks:'',
+        rejectingReason:''
         },{ "new": true, "upsert": true }, function(err,doc){
           if(err) 
           {
@@ -264,92 +445,258 @@ router.post('/reSubmitQPCR', (req,res)=>{
             console.log(err);
         }
           res.send(doc);
-          
         });
+        QPCR.findByIdAndUpdate()
 });
-router.post('/QPCRActionDecide', (req,res)=>{
-    const qpcrId=req.body.qpcrId;
-   const rootCause=req.body.rootCause;
-const targetDate=req.body.targetDate;
-const action=req.body.action;
-
-
-    QPCR.findByIdAndUpdate(qpcrId,{
-        status:2, action:action,rootCause:rootCause, targetDate:new Date(targetDate)
-        },{ "new": true, "upsert": true }, function(err,doc){
-          if(err) 
-          {
-            res.status(500).send("Error!");
-            console.log(err);
-        }
-          res.send(doc);
+//QPCR SAVE STEP ONE: TEMPORARY ACTION & SEGREGATION DETAILS
+router.post('/QPCRSave', (req,res)=>{
+  const qpcrId=req.body.newQPCR['_id'];
+  const newQPCR=req.body.newQPCR;
+  // const interimContainmentAction=req.body.temporaryAction;
+  // const segregationDetails=req.body.segregationDetails;
+  QPCR.findByIdAndUpdate(qpcrId,newQPCR,{ "new": true, "upsert": true }, function(err,doc){
+        if(err) 
+        {
+          res.status(500).send("Error!");
+          console.log(err);
+      }
+        res.send(doc);
+        
+      }).populate('raisingPerson','username genId department').populate('detectionStage.detectionMachine','name code').populate('detectionStage.detectionLine','name');
+});
+// // QPCR SAVE STEP TWO: FISH BONE ANALYSIS
+// router.post('/QPCRSaveStepTwo', (req,res)=>{
+//     const qpcrId=req.body.lastSavedQPCR['_id'];
+//     const lastSavedQPCR=req.body.lastSavedQPCR;
+//     // var validationReport=[];
+//     // for(var i=0;i<lastSavedQPCR['fishBoneAnalysis']['man'].length;i++)
+//     // {
+//     //   var validation;
+//     //   validation={
+//     //   cause:lastSavedQPCR['fishBoneAnalysis']['man'][i],
+//     //   specification:lastSavedQPCR['validationReport'][]['specification'],
+//     //   isValid:lastSavedQPCR['validationReport']['isValid'],
+//     //   remarks:''
+//     //   }
+//     //   validationReport.push(validation); 
+//     // }
+//     // for(var i=0;i<lastSavedQPCR['fishBoneAnalysis']['machine'].length;i++)
+//     // {
+//     //   var validation;
+//     //   validation={
+//     //   cause:lastSavedQPCR['fishBoneAnalysis']['machine'][i],
+//     //   specification:'',
+//     //   isValid:undefined,
+//     //   remarks:''
+//     //   }
+//     //   validationReport.push(validation);
+      
+//     // }
+//     // for(var i=0;i<lastSavedQPCR['fishBoneAnalysis']['method'].length;i++)
+//     // {
+//     //   var validation;
+//     //   validation={
+//     //   cause:lastSavedQPCR['fishBoneAnalysis']['method'][i],
+//     //   specification:'',
+//     //   isValid:undefined,
+//     //   remarks:''
+//     //   }
+//     //   validationReport.push(validation);
+      
+//     // }
+//     // for(var i=0;i<lastSavedQPCR['fishBoneAnalysis']['material'].length;i++)
+//     // {
+//     //   var validation;
+//     //   validation={
+//     //   cause:lastSavedQPCR['fishBoneAnalysis']['material'][i],
+//     //   specification:'',
+//     //   isValid:undefined,
+//     //   remarks:''
+//     //   }
+//     //   validationReport.push(validation);
+      
+//     // }
+//     // for(var i=0;i<lastSavedQPCR['fishBoneAnalysis']['environment'].length;i++)
+//     // {
+//     //   var validation;
+//     //   validation={
+//     //   cause:lastSavedQPCR['fishBoneAnalysis']['environment'][i],
+//     //   specification:'',
+//     //   isValid:undefined,
+//     //   remarks:''
+//     //   }
+//     //   validationReport.push(validation);
+//     // }
+//     QPCR.findByIdAndUpdate(qpcrId,lastSavedQPCR,{ "new": true, "upsert": true }, function(err,doc){
+//           if(err) 
+//           {
+//             res.status(500).send("Error!");
+//             console.log(err);
+//         }
+//           res.send(doc);
           
-        });
-});
-router.post('/QPCRActionDone', (req,res)=>{
-    const qpcrId=req.body.qpcrId;
-   
-    QPCR.findByIdAndUpdate(qpcrId,{
-        status:3
-        },{ "new": true, "upsert": true }, function(err,doc){
-          if(err) 
-          {
-            res.status(500).send("Error!");
-            console.log(err);
-        }
-          res.send(doc);
-          
-        });
-});
-router.post('/QPCRStandardize', (req,res)=>{
-    const qpcrId=req.body.qpcrId;
-   const remarks=req.body.closingRemarks;
-    QPCR.findByIdAndUpdate(qpcrId,{
-        status:4,
-        closingRemarks:remarks
-        },{ "new": true, "upsert": true }, function(err,doc){
-          if(err) 
-          {
-            res.status(500).send("Error!");
-            console.log(err);
-        }
-          res.send(doc);
-          
-        });
-});
+//         });
+// });
+
+// //QPCR SAVE STEP THREE: VALIDATION REPORT
+// router.post('/QPCRSaveStepThree', (req,res)=>{
+//   const qpcrId=req.body.newQPCR['_id'];
+//   const newQPCR=req.body.newQPCR;
+//   //var whyWhy=[];
+
+//   // for(var i=0;i<validationReport.length;i++){
+//   //   if(validationReport[i]['isValid'])
+//   //   {
+//   //     var map={
+//   //       id:i,
+//   //       problem:validationReport[i]['cause'],
+//   //       occurenceWhyWhy:validationReport[i]['occurenceWhyWhy'],
+//   //     detectionWhyWhy:[]
+//   //     }
+//   //     whyWhy.push(map);
+//   //   }
+//   // }
+//   QPCR.findByIdAndUpdate(qpcrId,newQPCR,{ "new": true, "upsert": true }, function(err,doc){
+//         if(err) 
+//         {
+//           res.status(500).send("Error!");
+//           console.log(err);
+//       }
+//         res.send(doc);
+        
+//       });
+// });
+
+// //QPCR SAVE STEP FOUR: WHY WHY ANALYSIS
+// // router.post('/QPCRSaveStepFour', (req,res)=>{
+// //   const qpcrId=req.body.QPCRId;
+// //   const validationReport=req.body.validationReport;
+  
+// //   QPCR.findByIdAndUpdate(qpcrId,{
+// //       validationReport:validationReport
+// //       },{ "new": true, "upsert": true }, function(err,doc){
+// //         if(err) 
+// //         {
+// //           res.status(500).send("Error!");
+// //           console.log(err);
+// //       }
+// //         res.send(doc);
+        
+// //       });
+// // });
+
+// // QPCR SHOW ALL VALID CAUSES
+// // router.get('/QPCRShowValidCauses', (req,res)=>{
+// //   const qpcrId=req.body.qpcrId;
+// //   QPCR.findById(qpcrId).then((qpcr)=>{
+// //     res.send(qpcr['whyWhyAnalysis']);
+// //     }).catch((err)=>{res.status(404).send("error")});
+// // });
+
+// // QPCR SAVE EACH WHY WHY
+// router.get('/QPCRSaveStepFour', (req,res)=>{
+//   const qpcrId=req.body.newQPCR['_id'];
+//   const newQPCR=req.body.newQPCR;
+//   // const isOccurence=req.body.isOccurence;
+//   // const causeId=req.body.causeId;
+//   // const whyWhy=req.body.whyWhy;
+//   // var dataBaseWhyWhy;
+//   // if(isOccurence)
+//   // {
+//   //   QPCR.findById(qpcrId).then((qpcr)=>{
+//   //        dataBaseWhyWhy=qpcr['whyWhyAnalysis'];
+//   //         }).catch((err)=>{res.status(404).send("error")});
+
+//   //         for(var i=0;i<dataBaseWhyWhy.length;i++)
+//   //         {
+//   //           if(dataBaseWhyWhy[i]['id']==causeId)
+//   //           {
+//   //             dataBaseWhyWhy[i]['occurenceWhyWhy']=whyWhy;
+//   //           }
+//   //         }
+    
+//   // }
+//   // else{
+//   //   QPCR.findById(qpcrId).then((qpcr)=>{
+//   //     dataBaseWhyWhy=qpcr['whyWhyAnalysis'];
+//   //      }).catch((err)=>{res.status(404).send("error")});
+
+//   //      for(var i=0;i<dataBaseWhyWhy.length;i++)
+//   //      {
+//   //        if(dataBaseWhyWhy[i]['id']==causeId)
+//   //        {
+//   //          dataBaseWhyWhy[i]['detectionWhyWhy']=whyWhy;
+//   //        }
+//   //      }
+ 
+//   // }
+//   QPCR.findByIdAndUpdate(qpcrId,newQPCR,{ "new": true, "upsert": true }, function(err,doc){
+//       if(err) 
+//       {
+//         res.status(500).send("Error!");
+//         console.log(err);
+//     }
+//       res.send(doc);
+//     });
+// });
 
 
-router.post('/changeQPCRDetails',(req,res)=>{
-  const qpcrId=req.body.qpcrId;
-  const rootCause=req.body.rootCause;
-const targetDate=req.body.targetDate;
-const action=req.body.action;
 
-   QPCR.findByIdAndUpdate(qpcrId,{
-        action:action,rootCause:rootCause, targetDate:new Date(targetDate)
-       },{ "new": true, "upsert": true }, function(err,doc){
-         if(err) 
-         {
-           res.status(500).send("Error!");
-           console.log(err);
-       }
-         res.send(doc);
+// router.post('/changeQPCRDetails',(req,res)=>{
+//   const qpcrId=req.body.qpcrId;
+//   const rootCause=req.body.rootCause;
+// const targetDate=req.body.targetDate;
+// const action=req.body.action;
+
+//    QPCR.findByIdAndUpdate(qpcrId,{
+//         action:action,rootCause:rootCause, targetDate:new Date(targetDate)
+//        },{ "new": true, "upsert": true }, function(err,doc){
+//          if(err) 
+//          {
+//            res.status(500).send("Error!");
+//            console.log(err);
+//        }
+//          res.send(doc);
          
-       });
-})
+//        });
+// })
+router.post('/QPCRSubmit', (req,res)=>{
+  const qpcrId=req.body.qpcrId;
+  const submissionDate=req.body.submissionDate;
+  const newQPCR=req.body.newQPCR;
+  QPCR.findByIdAndUpdate(qpcrId,newQPCR,{ "new": true, "upsert": true }, function(err,doc){
+    if(err) 
+    {
+      res.status(500).send("Error!");
+      console.log(err);
+  }
+    
+  QPCR.findByIdAndUpdate(qpcrId,{status:2,submissionDate:submissionDate},{ "new": true, "upsert": true }, function(err,doc){
+    if(err) 
+    {
+      res.status(500).send("Error!");
+      console.log(err);
+  }
+    res.send(doc);
+    
+  });
+  });
+  
+});
+
 
 router.post('/QPCRClose', (req,res)=>{
   const qpcrId=req.body.qpcrId;
  const actualClosingDate=new Date(req.body.actualClosingDate);
   QPCR.findByIdAndUpdate(qpcrId,{
-      status:5, actualClosingDate:actualClosingDate
-      },{ "new": true, "upsert": true }, function(err,doc){
+      status:3, actualClosingDate:actualClosingDate
+      },{ "new": true, "upsert": true }, function(err,docs){
         if(err) 
         {
           res.status(500).send("Error!");
           console.log(err);
         }      
-        var docs=doc;
+        
         try{
           var date=new Date();
           var Path='./public/QPCRData/'+date.getFullYear().toString();
