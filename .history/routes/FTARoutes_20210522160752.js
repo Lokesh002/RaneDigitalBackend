@@ -17,7 +17,7 @@ var ftaPhoto="";
 
 
 const ftaStorage=multer.diskStorage({
-  destination: './public/FTApics/',
+  destination: './public/QPCRpics/QpcrOKPics/',
   filename:async function(req,file,cb){
     ftaPhoto=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
      await cb(null,ftaPhoto);
@@ -44,18 +44,9 @@ const ftaStorage=multer.diskStorage({
   
             }
             else{
-                FTA.findById(req.body.id).select("photoURL").then((result)=>{
-                    if(result!=null)
-                    {
-                        if(result['photoURL']!=null && result['photoURL']!="")
-                      {
-                        var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
-                       {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
-                       }
-                      }
-                        FTA.findByIdAndUpdate(req.body.id,{
+              
+                //console.log(req.file);
+                FTA.findByIdAndUpdate(req.body.id,{
                   photoURL:finalURL+'FTApics/'+ftaPhoto
                   },{ "new": true, "upsert": true }, function(err,doc){
                     if(err) 
@@ -65,13 +56,9 @@ const ftaStorage=multer.diskStorage({
                   }
                     res.send(doc);
                     
-                  }).populate('raisingPerson','username genId department').populate('line','name').populate('machine','name code').populate('parent','description');
+                  });
                       } 
                 });
-                    }
-                });
-                //console.log(req.file);
-                
                
                 
      }); 
@@ -82,12 +69,9 @@ router.post('/generate', (req,res)=>{
 
     var ancestors=[];
     FTA.findById(req.body.parent).select("ancestors").then((ftaParent)=>{
-        if(ftaParent!=null)
-        {
-             ancestors=ftaParent["ancestors"]
+        
+        ancestors=ftaParent["ancestors"]
         ancestors.push(req.body.parent);
-        }
-       
         const fta=new FTA({
             description:req.body.description,
     
@@ -104,7 +88,7 @@ router.post('/generate', (req,res)=>{
             
             
           });
-          fta.save().then((result)=>{result.populate('raisingPerson','username genId department').populate('machine','name code').populate('parent','description').populate('line',function(err, fta) {
+          fta.save().then((result)=>{result.populate('machine').populate('line').populate('parent','description').populate('raisingPerson',function(err, fta) {
             if(err) throw err;
       
             
@@ -132,16 +116,14 @@ router.post('/generate', (req,res)=>{
                     
                     }
                     else{
-                      if(result['photoURL']!=null && result['photoURL']!="")
-                      {
-                        var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
-                       {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
-                       }console.log(photo +" deleted!!!");
-                      }
-                        
                       
+                          var photo=result['photoURL'].toString();
+                        
+                       if(fs.existsSync('./public/FTApics/'+photo.substring(34,59)))
+                       {
+                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,59));
+                       }
+                        console.log(photo +" deleted!!!");
                     }
                 });
             }
@@ -155,15 +137,13 @@ router.post('/generate', (req,res)=>{
                 }
                 else{
                   
-                    if(result['photoURL']!=null && result['photoURL']!="")
-                    {
                       var photo=result['photoURL'].toString();
-                       if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
-                     {
-                       fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
-                     }console.log(photo +" deleted!");
-                    }
-                   
+                    
+                   if(fs.existsSync('./public/FTApics/'+photo.substring(34,59)))
+                   {
+                     fs.unlinkSync('./public/FTApics/'+photo.substring(34,59));
+                   }
+                   console.log(photo +" deleted!!!");
                 }
                 
             res.status(200).send({"msg":"Successfully Deleted"});
@@ -177,21 +157,19 @@ router.post('/generate', (req,res)=>{
         var description=req.body.description;
         var photoURL=req.body.photoURL;
         var id=req.body.id;
-        
+    
+    
         
             FTA.findByIdAndUpdate(id,{
                 "description":description,"photoURL":photoURL
             }).populate('raisingPerson','username genId department').populate('line','name').populate('machine','name code').populate('parent','description').then((fta)=>{
-                
-
-
-
             res.send(fta)}).catch((err)=>{res.status(404).send("Error")});
         
     
-   
-    
+       
   });
+    
+ 
   
   router.post('/getFTA', (req,res)=>{
       

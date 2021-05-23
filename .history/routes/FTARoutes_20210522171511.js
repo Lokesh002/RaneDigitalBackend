@@ -161,7 +161,7 @@ router.post('/generate', (req,res)=>{
                        if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
                      {
                        fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
-                     }console.log(photo +" deleted!");
+                     }console.log(photo +" deleted!!!");
                     }
                    
                 }

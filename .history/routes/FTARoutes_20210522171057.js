@@ -50,9 +50,9 @@ const ftaStorage=multer.diskStorage({
                         if(result['photoURL']!=null && result['photoURL']!="")
                       {
                         var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,59)))
                        {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
+                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,59));
                        }
                       }
                         FTA.findByIdAndUpdate(req.body.id,{
@@ -135,9 +135,9 @@ router.post('/generate', (req,res)=>{
                       if(result['photoURL']!=null && result['photoURL']!="")
                       {
                         var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,59)))
                        {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
+                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,59));
                        }console.log(photo +" deleted!!!");
                       }
                         
@@ -158,10 +158,10 @@ router.post('/generate', (req,res)=>{
                     if(result['photoURL']!=null && result['photoURL']!="")
                     {
                       var photo=result['photoURL'].toString();
-                       if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                       if(fs.existsSync('./public/FTApics/'+photo.substring(34,59)))
                      {
-                       fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
-                     }console.log(photo +" deleted!");
+                       fs.unlinkSync('./public/FTApics/'+photo.substring(34,59));
+                     }console.log(photo +" deleted!!!");
                     }
                    
                 }

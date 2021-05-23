@@ -124,6 +124,12 @@ const MeasuresSchema=mongoose.Schema({
     },
    correctiveMeasures:{
     CMOutflowMeasure:{
+        type:Date,
+    },
+    CMOutflowMeasureTargetDate:{
+        type:String,
+    },
+    CMOutflowResponsibiliy:{
         type:String,
     },
     CMOutflowPhotoURL:{
@@ -131,6 +137,13 @@ const MeasuresSchema=mongoose.Schema({
     },
     CMOccurenceMeasure:{
         type:String,
+    },
+    CMOccurenceResponsibility:{
+        type:String,
+
+    },
+    CMOccurrenceMeasureTargetDate:{
+        type:Date,
     },
     CMOccurencePhotoURL:{
         type:String,
@@ -143,16 +156,41 @@ preventiveMeasures:{
     PMOutflowPhotoURL:{
         type:String,
     },
+    PMOutflowMeasureTargetDate:{
+        type:String,
+    },
+    PMOutflowResponsibiliy:{
+        type:String,
+    },
     PMOccurenceMeasure:{
         type:String,
     },
     PMOccurencePhotoURL:{
         type:String,
-    }
+    },
+    PMOccurenceResponsibility:{
+        type:String,
+
+    },
+    PMOccurrenceMeasureTargetDate:{
+        type:Date,
+    },
 }
     
 });
 
+const TeamSchema=mongoose.Schema({
+  name:{
+      type:String,
+  },
+    isLeader:{
+        type:Boolean
+    },
+    date:{
+        type:Date
+    }
+    
+});
 
 const StandardizationSchema=mongoose.Schema({
  drawingDocNumber:{
@@ -346,7 +384,10 @@ validationReport:[ValidationReportSchema],
 measures:[MeasuresSchema],
 standardization:StandardizationSchema,
 
-teamInvolved:[{type:mongoose.Schema.Types.ObjectId, ref: 'Users'}],
+teamInvolved:{
+    type:[TeamSchema],
+},
+
 
 effectivenessMonitoring:[CAPAEffectivenessSchema],
 horizontalDeploymentDetails:[horizontalDeploymentSchema],

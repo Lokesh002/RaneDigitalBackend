@@ -233,8 +233,6 @@ app.use(cors());
                        });
                        fileDB.save().then((result)=>{res.render('index',{success: "File Uploaded Succesfully!"});}).catch((err)=>{console.log(err);}); 
                      } 
-                      
-                      
                 }
                 else{
                 //change the url of existing file in DB and then delete the earlier file.

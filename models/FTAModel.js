@@ -14,6 +14,7 @@ photoURL:{
     type:String
 },
 parent:{type:mongoose.Schema.Types.ObjectId, ref: 'FTA'},
+ancestors:[],
 raisingPerson: {type:mongoose.Schema.Types.ObjectId, ref: 'Users'},
 
 
