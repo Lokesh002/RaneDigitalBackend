@@ -24,7 +24,8 @@ accountType:{
     type:String,
     required:true
 },
-
+acs:{
+},
 access:{
     
     pfu:Boolean,
@@ -40,7 +41,7 @@ addNewUser:Boolean,
 ftaEdit:Boolean,
 ftaAdd:Boolean,
 ftaDelete:Boolean,
-ftaSee:Boolean,
+ftaSee:Boolean
 accessDept:[String]
 },
 

@@ -10,6 +10,7 @@ const path =require('path');
 const CSSRoutes=require('./routes/CSSRoutes');
 const QSSRoutes=require('./routes/QSSRoutes');
 const PFURoutes=require('./routes/PFURoutes');
+const QPCRRoutes=require('./routes/QPCRRoutes');
 const LineRoutes=require('./routes/LineRoutes');
 const UserAuthRoute=require('./routes/UserAuthRoute');
 const FourMRoutes=require('./routes/FourMRoutes');
@@ -17,9 +18,12 @@ const DailyProduction=require('./routes/DailyMFGRoutes');
 const ShiftPlan=require('./routes/ShiftPlanRoutes');
 const ejs=require('ejs');
 const PFU=require('./models/PFUModel');
+const QPCR=require('./models/QPCRModel');
 const FileDB = require("./models/uploadedFile");
 const FolderDB=require("./models/newFolder");
+const FTARoutes=require('./routes/FTARoutes');
 const { doesNotMatch } = require("assert");
+const cors=require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 app.set('view engine','ejs');
@@ -36,9 +40,10 @@ app.listen(port,function(){
 });
 }).catch((err)=>{console.log(err)});
 
-
+var finalURL='http://192.168.43.18:3000/';
 var x='';
 var photoName="";
+
 //Set Storage Engine
 const storage=multer.diskStorage({
 destination: './public/uploads/',
@@ -48,7 +53,7 @@ filename:async function(req,file,cb){
    
 }
 });
-const picsStorage=multer.diskStorage({
+const picsPFUStorage=multer.diskStorage({
   destination: './public/PFUpics/',
   filename:async function(req,file,cb){
      photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
@@ -56,8 +61,7 @@ const picsStorage=multer.diskStorage({
      
   }
   });
-
-
+ 
 //Init Upload
 const upload=multer({
       
@@ -70,7 +74,7 @@ const upload=multer({
 //PFU photo
 const uploadPFUPhoto=multer({
       
-  storage:picsStorage,
+  storage:picsPFUStorage,
   
 limits:{
     fileSize: 10* 1024 * 1024
@@ -81,24 +85,21 @@ limits:{
 
 // SETUP APP
 var data;
-
+app.use(cors());
   app.use(express.static('./public'));
-    app.get('/', (req,res)=>{
-     
-              res.render('index',{success:""}); 
-                                    
-        
+    app.get('/', (req,res)=>{ 
+      res.render('index',{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
-      res.send('1.0.0');
-    })
+      res.send('1.0.2');
+    });
+    app.get('/securityForDRS', (req,res)=>{
+      res.send({'allowed':false});
+    });
     app.get('/MEDDropDown.json', (req,res)=>{
       FolderDB.find({department:"MED"}).then((result)=>{
-        
-        data=result;
-
-        res.send(JSON.stringify(data));
-        
+      data=result;
+      res.send(JSON.stringify(data));  
         }).catch((err)=>{console.log(err);});
     });
     app.get('/StoreDropDown.json', (req,res)=>{
@@ -107,8 +108,8 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
-    app.get('/PPCDropDown.json', (req,res)=>{
-      FolderDB.find({department:"PPC"}).then((result)=>{
+    app.get('/HRDropDown.json', (req,res)=>{
+      FolderDB.find({department:"HR"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -126,8 +127,30 @@ var data;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
+    app.get('/SQADropDown.json', (req,res)=>{
+      FolderDB.find({department:"SQA"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });
     app.get('/QADDropDown.json', (req,res)=>{
       FolderDB.find({department:"QAD"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });app.get('/DispatchDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Dispatch"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });
+    app.get('/AccountsDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Accounts"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
+    });app.get('/SafetyDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Safety"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
@@ -141,40 +164,35 @@ var data;
     app.use('/CSS',CSSRoutes);
     app.use('/QSS', QSSRoutes);
     app.use('/PFU', PFURoutes);
+    app.use('/QPCR', QPCRRoutes);
     app.use('/Line', LineRoutes);
     app.use('/User', UserAuthRoute);
     app.use('/4M', FourMRoutes);
     app.use('/DailyProduction', DailyProduction);
     app.use('/ShiftPlan', ShiftPlan);
-
+    app.use('/FTA', FTARoutes);
 
 //post UPLOAD FILE method
     app.post('/upload',(req,res)=>{
         
         upload(req,res,(err) =>{
-        //   console.log(req.body.myList);
-        // console.log(req.body.name);
         
             if(err){
                 res.render('index',{msg:err,success:""});
 
             }else{
               
-                // console.log(req.file);
                 FileDB.find({
                   department:req.body.myList,
                   originalName:req.file.originalname
                 })
                 .then(async(result)=>{
-                    // console.log(result);
                     if(result.length==0){
                       
                       if(req.body.folderList=="newFolder"){
                         var foldernm=req.body.folderName;
                         var folder;
-                        
-                        // console.log("hello "+foldernm);
-                        // console.log(req.body.folderList);
+      
 
                         //saving folder
                         const folderDB=new FolderDB({
@@ -182,8 +200,7 @@ var data;
                           department: req.body.myList
                           
                         });
-                        // console.log("folderDB");
-                        // console.log(folderDB);
+                      
                         await folderDB.save().then((result)=>{
                           // console.log(result);
                            folder=result;
@@ -196,7 +213,7 @@ var data;
                           name: req.body.name.toString(),
                           originalName:req.file.originalname.toString(),
                           //CHANGE THIS WHEN DEPLOYING TO MFG
-                          url: 'http://192.168.43.18:3000/uploads/'+x,
+                          url: finalURL+'uploads/'+x,
                           department: req.body.myList,
                           folder: folder._id,
                           size: req.file.size
@@ -214,15 +231,13 @@ var data;
                         name: req.body.name.toString(),
                         originalName:req.file.originalname.toString(),
                         //CHANGE THIS WHEN DEPLOYING TO MFG
-                        url: 'http://192.168.43.18:3000/uploads/'+x,
+                        url: finalURL+'uploads/'+x,
                         department: req.body.myList,
                         folder: mongoose.Types.ObjectId(req.body.folderList),
                         size: req.file.size
                        });
                        fileDB.save().then((result)=>{res.render('index',{success: "File Uploaded Succesfully!"});}).catch((err)=>{console.log(err);}); 
                      } 
-                      
-                      
                 }
                 else{
                 //change the url of existing file in DB and then delete the earlier file.
@@ -267,38 +282,26 @@ var data;
             }
         });
     });
-
-    app.post('/uploadPFUPhoto',(req,res)=>{
-        
+    app.post('/uploadPFUPhoto',(req,res)=>{  
       uploadPFUPhoto(req,res,(err) =>{
-        // console.log(req.body.pfuId);
-      
           if(err){
               res.send("Error");
-
           }
           else{
-            
-              //console.log(req.file);
               PFU.findByIdAndUpdate(req.body.pfuId,{
-                photoURL:'http://192.168.43.18:3000/PFUpics/'+photoName
+                photoURL:finalURL+'PFUpics/'+photoName
                 },{ "new": true, "upsert": true }, function(err,doc){
                   if(err) 
                   {
                     res.status(500).send("Error!");
                     console.log(err);
                 }
-                  res.send(doc);
-                  
+                  res.send(doc);   
                 });
                     }
-
-                    
-              });
-             
-              
-   }); 
-               
+              });        
+   });
+    
         //get files of a folder method
 app.get('/apk',(req,res)=>{
   res.redirect('/app/RaneDigital.apk');
