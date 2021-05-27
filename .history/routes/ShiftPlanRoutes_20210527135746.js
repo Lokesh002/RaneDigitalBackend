@@ -130,7 +130,7 @@ function setToToday(arg) {
     }
     })
 }
-//console.log('helo');
+console.log('helo');
 //console.log(Date.now().toString());
 //console.log( new Date('August 19, 1975 23:15:30 GMT+05:30').getTimezoneOffset());
 //console.log(new Date(new Date(Date.now()+(5*60*60*1000+30*60*1000))));

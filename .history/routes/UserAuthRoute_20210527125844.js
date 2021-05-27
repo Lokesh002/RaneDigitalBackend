@@ -78,7 +78,7 @@ router.post('/registerUser', (req,res)=>{
             ftaEdit:true,
             ftaAdd:true,
             ftaDelete:true,
-            ftaSee:true}
+            ftaSee:true,}
         break;
         case "staff":
             access={
@@ -96,7 +96,7 @@ router.post('/registerUser', (req,res)=>{
             ftaEdit:false,
             ftaAdd:false,
             ftaDelete:false,
-            ftaSee:true}
+            ftaSee:true,}
         break;
         case "lineLeader":
             access={
@@ -110,11 +110,7 @@ router.post('/registerUser', (req,res)=>{
             qssAdd:false,
             cssAdd:false,
             addNewUser:false,
-            accessDept:accessDept,
-            ftaEdit:false,
-            ftaAdd:false,
-            ftaDelete:false,
-            ftaSee:true}
+            accessDept:accessDept}
         break;   
         case "operator":
             access={
@@ -128,11 +124,7 @@ router.post('/registerUser', (req,res)=>{
             qssAdd:true,
             cssAdd:true,
             addNewUser:false,
-            accessDept:accessDept,
-            ftaEdit:false,
-            ftaAdd:false,
-            ftaDelete:false,
-            ftaSee:true}
+            accessDept:accessDept}
         break;
         default:
             access=false;

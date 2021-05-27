@@ -15,6 +15,7 @@ var finalURL='http://192.168.43.18:3000/';
 //Generate QPCR
 var ftaPhoto="";
 
+var allowedPersons=['14075'];
 const ftaStorage=multer.diskStorage({
   destination: './public/FTApics/',
   filename:async function(req,file,cb){
@@ -77,7 +78,9 @@ const ftaStorage=multer.diskStorage({
          
   
 router.post('/generate', (req,res)=>{
-
+var genId=req.body.genId;
+if(allowedPersons.includes(genId))
+{
     var ancestors=[];
     FTA.findById(req.body.parent).select("ancestors").then((ftaParent)=>{
         if(ftaParent!=null)
@@ -114,12 +117,20 @@ router.post('/generate', (req,res)=>{
           }); 
       });
 
-    
+    }
+    else{
+      res.status(202).send({'msg':'Not Authorized'});
+    }
     }); 
+
+
+
       router.post('/deleteFTA', (req,res)=>{
  
         var id=req.body.id;
-     
+     var genId=req.body.genId;
+if(allowedPersons.includes(genId))
+{
         FTA.find({"ancestors":id}).select('ancestors').then((ChildFtas)=>{
             for(var i=0;i<ChildFtas.length;i++)
             {
@@ -170,7 +181,10 @@ router.post('/generate', (req,res)=>{
         });
         
         
-    });
+    });}
+    else{
+      res.status(202).send({'msg':'Not Authorized'});
+    }
       });
       router.post('/edit', (req,res)=>{
           
