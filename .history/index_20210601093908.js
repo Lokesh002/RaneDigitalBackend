@@ -96,16 +96,14 @@ app.use(cors());
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
     });
-
     app.get('/PPCDropDown.json', (req,res)=>{
       FolderDB.find({department:"PPC"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
-      });
-
     app.get('/MEDDropDown.json', (req,res)=>{
-       FolderDB.find({department:"MED"}).then((result)=>{
+      
+      FolderDB.find({department:"MED"}).then((result)=>{
       data=result;
       res.send(JSON.stringify(data));  
         }).catch((err)=>{console.log(err);});
@@ -131,7 +129,7 @@ app.use(cors());
     app.get('/PLEDropDown.json', (req,res)=>{
       FolderDB.find({department:"PLE"}).then((result)=>{
         store=result;
-        //console.log("hello"+ result);
+        console.log("hello"+ result);
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
     });
@@ -146,6 +144,11 @@ app.use(cors());
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
+    });app.get('/DispatchDropDown.json', (req,res)=>{
+      FolderDB.find({department:"Dispatch"}).then((result)=>{
+        store=result;
+        res.send(JSON.stringify(result));
+        }).catch((err)=>{console.log(err);});
     });
     app.get('/AccountsDropDown.json', (req,res)=>{
       FolderDB.find({department:"Accounts"}).then((result)=>{
@@ -154,13 +157,6 @@ app.use(cors());
         }).catch((err)=>{console.log(err);});
     });app.get('/SafetyDropDown.json', (req,res)=>{
       FolderDB.find({department:"Safety"}).then((result)=>{
-        store=result;
-        res.send(JSON.stringify(result));
-        }).catch((err)=>{console.log(err);});
-    });
-
-    app.get('/CorpMEDDropDown.json', (req,res)=>{
-      FolderDB.find({department:"CorpMED"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});

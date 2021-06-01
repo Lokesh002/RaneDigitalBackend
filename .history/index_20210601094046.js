@@ -96,16 +96,14 @@ app.use(cors());
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
     });
-
     app.get('/PPCDropDown.json', (req,res)=>{
       FolderDB.find({department:"PPC"}).then((result)=>{
         store=result;
         res.send(JSON.stringify(result));
         }).catch((err)=>{console.log(err);});
-      });
-
     app.get('/MEDDropDown.json', (req,res)=>{
-       FolderDB.find({department:"MED"}).then((result)=>{
+      
+      FolderDB.find({department:"MED"}).then((result)=>{
       data=result;
       res.send(JSON.stringify(data));  
         }).catch((err)=>{console.log(err);});
