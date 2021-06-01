@@ -50,4 +50,15 @@ router.get('/getAllLines', async(req,res)=>{
             
         });
 
+        // const cursor = Line.find().populate('machine').lean(true).cursor();
+        // // cursor.next(function(error, doc) {
+            
+        // //     res.send(doc);
+        // //   });
+        // for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
+        //     res.send(doc); // Prints documents one at a time
+        // }
+
+
+    // });
 module.exports = router;
