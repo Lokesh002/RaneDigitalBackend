@@ -11,7 +11,7 @@ const multer = require('multer');
   const bodyParser = require('body-parser');
 
 const path =require('path');
-var finalURL='http://192.168.50.15/';
+var finalURL='http://192.168.38.109:3000/';
 //Generate QPCR
 var ftaPhoto="";
 
