@@ -8,7 +8,7 @@ $(document).ready(function(){
   $("#myList").on('change',function() {
   var $dropdown = $(this);
   // console.log("hello2");
-  var $jsonFileAddress="http://192.168.43.18:3000/"+$dropdown.val()+'DropDown.json';
+  var $jsonFileAddress="http://192.168.68.109:3000/"+$dropdown.val()+'DropDown.json';
   // console.log($jsonFileAddress);
   $.getJSON($jsonFileAddress, function(data) {
     // console.log(data);

@@ -40,7 +40,7 @@ app.listen(port,function(){
 });
 }).catch((err)=>{console.log(err)});
 
-var finalURL='http://192.168.43.18:3000/';
+var finalURL='http://192.168.68.109:3000/';
 var x='';
 var photoName="";
 
@@ -91,7 +91,7 @@ app.use(cors());
       res.render('index',{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
-      res.send('1.0.2');
+      res.send('1.0.1');
     });
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
