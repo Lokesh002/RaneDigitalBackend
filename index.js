@@ -95,7 +95,7 @@ app.use(cors());
     });
 
     app.delete('/updateDesktopApp',(req,res)=>{
-      res.send('1.0.0');
+      res.send('1.0.1');
     });
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
@@ -306,7 +306,7 @@ app.get('/apk',(req,res)=>{
   res.redirect('/app/RaneDigital.apk');
   }); 
   app.get('/desktopApp',(req,res)=>{
-    res.redirect('/desktop/RaneDigital.exe');
+    res.redirect('/desktop/RaneDigital.zip');
     }); 
         //get files of a folder method
 app.get('/view/:folder',(req,res)=>{
