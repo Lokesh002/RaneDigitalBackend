@@ -91,7 +91,11 @@ app.use(cors());
       res.render('index',{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
-      res.send('1.0.2');
+      res.send('1.0.1');
+    });
+
+    app.delete('/updateDesktopApp',(req,res)=>{
+      res.send('1.0.0');
     });
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
@@ -301,6 +305,9 @@ app.use(cors());
 app.get('/apk',(req,res)=>{
   res.redirect('/app/RaneDigital.apk');
   }); 
+  app.get('/desktopApp',(req,res)=>{
+    res.redirect('/desktop/RaneDigital.exe');
+    }); 
         //get files of a folder method
 app.get('/view/:folder',(req,res)=>{
   const folder= req.params.folder;
