@@ -306,7 +306,7 @@ app.get('/apk',(req,res)=>{
   res.redirect('/app/RaneDigital.apk');
   }); 
   app.get('/desktopApp',(req,res)=>{
-    res.redirect('/desktop/RaneDigital.exe');
+    res.redirect('/desktop/RaneDigital.zip');
     }); 
         //get files of a folder method
 app.get('/view/:folder',(req,res)=>{
