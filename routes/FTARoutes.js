@@ -49,9 +49,9 @@ const ftaStorage=multer.diskStorage({
                         if(result['photoURL']!=null && result['photoURL']!="")
                       {
                         var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                         if(fs.existsSync('./public/FTApics/'+photo.substring(34)))
                        {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
+                         fs.unlinkSync('./public/FTApics/'+photo.substring(34));
                        }
                       }
                         FTA.findByIdAndUpdate(req.body.id,{
@@ -135,9 +135,9 @@ router.post('/generate', (req,res)=>{
                       if(result['photoURL']!=null && result['photoURL']!="")
                       {
                         var photo=result['photoURL'].toString();
-                         if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                         if(fs.existsSync('./public/FTApics/'+photo.substring(34)))
                        {
-                         fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
+                         fs.unlinkSync('./public/FTApics/'+photo.substring(34));
                        }console.log(photo +" deleted!!!");
                       }
                         
@@ -158,9 +158,9 @@ router.post('/generate', (req,res)=>{
                     if(result['photoURL']!=null && result['photoURL']!="")
                     {
                       var photo=result['photoURL'].toString();
-                       if(fs.existsSync('./public/FTApics/'+photo.substring(34,60)))
+                       if(fs.existsSync('./public/FTApics/'+photo.substring(34)))
                      {
-                       fs.unlinkSync('./public/FTApics/'+photo.substring(34,60));
+                       fs.unlinkSync('./public/FTApics/'+photo.substring(34));
                      }console.log(photo +" deleted!");
                     }
                    

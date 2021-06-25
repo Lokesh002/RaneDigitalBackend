@@ -56,6 +56,7 @@ filename:async function(req,file,cb){
 const picsPFUStorage=multer.diskStorage({
   destination: './public/PFUpics/',
   filename:async function(req,file,cb){
+    
      photoName=file.fieldname+"_"+Date.now()+path.extname(file.originalname);
      await cb(null,photoName);
      
@@ -95,7 +96,7 @@ app.use(cors());
     });
 
     app.delete('/updateDesktopApp',(req,res)=>{
-      res.send('1.0.2');
+      res.send('1.0.1');
     });
     app.get('/securityForDRS', (req,res)=>{
       res.send({'allowed':false});
@@ -284,9 +285,11 @@ app.use(cors());
     app.post('/uploadPFUPhoto',(req,res)=>{  
       uploadPFUPhoto(req,res,(err) =>{
           if(err){
-              res.send("Error");
+              res.status(500).send("Error");
+              console.log(err);
           }
           else{
+            console.log(photoName+ " added");
               PFU.findByIdAndUpdate(req.body.pfuId,{
                 photoURL:finalURL+'PFUpics/'+photoName
                 },{ "new": true, "upsert": true }, function(err,doc){
