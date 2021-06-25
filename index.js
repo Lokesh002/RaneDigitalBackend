@@ -4,9 +4,11 @@
   const mongoose = require("mongoose");
   const express = require('express');
   const multer = require('multer');
+  var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
   const bodyParser = require('body-parser');
   const fs=require('fs');
-const path =require('path');
 const CSSRoutes=require('./routes/CSSRoutes');
 const QSSRoutes=require('./routes/QSSRoutes');
 const PFURoutes=require('./routes/PFURoutes');
@@ -26,11 +28,16 @@ const { doesNotMatch } = require("assert");
 const cors=require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
+//app.engine('html', require('ejs').renderFile);
 app.set('view engine','ejs');
+
 app.use(express.urlencoded({extended:true}));
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
+//app.use(logger('dev'));
+//app.use(express.json());
 
+//app.use(cookieParser());
 //DB connect and server start
 
 mongoose.connect('mongodb://localhost/RaneDMS',{ useNewUrlParser: true,useUnifiedTopology: true,useFindAndModify: false  })
@@ -90,6 +97,9 @@ app.use(cors());
   app.use(express.static('./public'));
     app.get('/', (req,res)=>{ 
       res.render('index',{success:""}); 
+    });
+    app.get('/rane', (req,res)=>{ 
+      res.sendFile(path.join(__dirname+'/views/public-flutter/index.html'),{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
       res.send('1.0.1');
