@@ -47,7 +47,7 @@ app.listen(port,function(){
 });
 }).catch((err)=>{console.log(err)});
 
-var finalURL='http://192.168.68.109:3000/';
+var finalURL='http://192.168.5.109:3000/';
 var x='';
 var photoName="";
 
@@ -94,12 +94,12 @@ limits:{
 // SETUP APP
 var data;
 app.use(cors());
-  app.use(express.static('./public'));
+  app.use(express.static(path.join(__dirname, 'public')));
     app.get('/', (req,res)=>{ 
-      res.render('index',{success:""}); 
+      res.render('index.ejs',{success:""}); 
     });
     app.get('/rane', (req,res)=>{ 
-      res.sendFile(path.join(__dirname+'/views/public-flutter/index.html'),{success:""}); 
+      res.sendFile(path.join(__dirname+'/public/publicflutter/index.html'),{success:""}); 
     });   
     app.delete('/updateApp',(req,res)=>{
       res.send('1.0.1');
@@ -360,4 +360,3 @@ app.get('/:dept',(req,res)=>{
 
     
    
-  
